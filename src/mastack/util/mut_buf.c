@@ -138,7 +138,7 @@ MutBuf_clear(
 }
 
 bool
-MutBuf_push_byte(
+MutBuf_push(
     MutBuf * self,
     u8 byte
 ) {

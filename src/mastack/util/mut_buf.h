@@ -51,7 +51,7 @@ MutBuf_clear(
 );
 
 bool
-MutBuf_push_byte(
+MutBuf_push(
     MutBuf * self,
     u8 byte
 );
@@ -130,11 +130,11 @@ MutBuf_as_slice(
 
 static
 inline
-const u8 *
+u8 *
 MutBuf_data(
     MutBuf * self
 ) {
-    return (const u8 *)self->buf;
+    return (u8 *)self->buf;
 }
 
 /**
@@ -143,17 +143,8 @@ MutBuf_data(
  * @param type  The C type to cast the data to.
  * @param index The element index (based on the size of 'type')
  */
-#define MutBuf_at(self, type, index)  \
+#define MutBuf_at_as(self, type, index)  \
     (((type *)MutBuf_data(self))[(index)])
-
-static
-inline
-u8 *
-MutBuf_data_mut(
-    MutBuf * self
-) {
-    return self->buf;
-}
 
 static
 inline

@@ -23,6 +23,8 @@ TokTag_to_str(
     case TokTag_Gte:            return ">=";
     case TokTag_LessThan:       return "<";
     case TokTag_Lte:            return "<=";
+    case TokTag_Dot:            return ".";
+    case TokTag_RightArrow:     return "->";
     case TokTag_Assign:         return "=";
     case TokTag_Colon:          return ":";
     case TokTag_Semicolon:      return ";";
@@ -114,8 +116,8 @@ void
 TokSeq_init(
     TokSeq * self
 ) {
-    MutBuf_init(&self->buf_toks);
-    self->num_toks = 0;
+    MutBuf_init(&self->buf);
+    self->cnt = 0;
 }
 
 bool
@@ -124,11 +126,11 @@ TokSeq_push(
     Token * tok
 ) {
     BufSlice buf = BufSlice_new_from_ptr(tok);
-    if (!MutBuf_extend(&self->buf_toks, buf)) {
+    if (!MutBuf_extend(&self->buf, buf)) {
         return false;
     }
 
-    self->num_toks += 1;
+    self->cnt += 1;
 
     return true;
 }
@@ -257,12 +259,12 @@ void
 TokSeq_clear(
     TokSeq * self
 ) {
-    MutBuf * buf = &self->buf_toks;
-    for (usize i = 0; i < self->num_toks; i++) {
-        Token_deinit(&MutBuf_at(buf, Token, i));
+    MutBuf * buf = &self->buf;
+    for (usize i = 0; i < self->cnt; i++) {
+        Token_deinit(&MutBuf_at_as(buf, Token, i));
     }
 
-    self->num_toks = 0;
+    self->cnt = 0;
 }
 
 void
@@ -270,7 +272,7 @@ TokSeq_deinit(
     TokSeq * self
 ) {
     TokSeq_clear(self);
-    MutBuf_deinit(&self->buf_toks);
+    MutBuf_deinit(&self->buf);
 }
 
 void

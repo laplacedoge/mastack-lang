@@ -24,6 +24,9 @@ typedef enum _TokTag {
     TokTag_LessThan,        // Equal `<`
     TokTag_Lte,             // Equal `<=`
 
+    TokTag_Dot,             // Dot `.`
+    TokTag_RightArrow,      // Right arrow `->`
+
     TokTag_Assign,          // Equal `=`
     TokTag_Colon,           // Colon `:`
     TokTag_Semicolon,       // Semicolon `;`
@@ -79,8 +82,8 @@ Token_deinit(
 );
 
 typedef struct _TokSeq {
-    MutBuf buf_toks;
-    usize num_toks;
+    MutBuf buf;
+    usize cnt;
 } TokSeq;
 
 void
@@ -120,21 +123,12 @@ TokSeq_push_tagonly(
 
 static
 inline
-const Token *
-TokSeq_data(
-    TokSeq * self
-) {
-    return (const Token *)MutBuf_data(&self->buf_toks);
-}
-
-static
-inline
-const Token *
+Token *
 TokSeq_At(
     TokSeq * self,
-    usize index
+    usize idx
 ) {
-    return &TokSeq_data(self)[index];
+    return &MutBuf_at_as(&self->buf, Token, idx);
 }
 
 static
@@ -143,7 +137,7 @@ usize
 TokSeq_Count(
     TokSeq * self
 ) {
-    return self->num_toks;
+    return self->cnt;
 }
 
 bool
