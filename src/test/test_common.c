@@ -18,7 +18,7 @@ TEST Test_demo(void) {
     ASSERT(TokSeq_push_integer(&seq, 47));
     ASSERT(TokSeq_push_tagonly(&seq, TokTag_Semicolon));
 
-    usize num_toks = TokSeq_Count(&seq);
+    usize num_toks = TokSeq_count(&seq);
     ASSERT_EQ(num_toks, 8);
 
     ASSERT(TokSeq_write(&seq, &wrt));

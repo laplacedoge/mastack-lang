@@ -1,3 +1,4 @@
+#include <string.h>
 
 #include "lexer.h"
 
@@ -12,7 +13,7 @@ typedef enum _State: u8 {
 typedef enum _Action {
     Action_Continue,
     Action_Again,
-    Action_Error,
+    Action_Panic,
 } Action;
 
 void
@@ -22,9 +23,21 @@ Lexer_init(
     LineCache_init(&self->lc);
     MutBuf_init(&self->str);
     TokSeq_init(&self->stm);
+    LexRpt_init(&self->rpt);
 
     self->cur_idx = 0;
     self->nl_idx = 0;
+    self->row = 0;
+    self->col = 0;
+}
+
+static
+bool
+Lexer_report_error_invalid_byte(
+    Lexer * self,
+    u8 byte
+) {
+    return LexRpt_add_error_invalid_byte(&self->rpt, self->row, self->col, byte);
 }
 
 static
@@ -39,10 +52,11 @@ Lexer_current_index(
 static
 inline
 void
-Lexer_increment_current_index(
+Lexer_post_byte_consumption(
     Lexer * self
 ) {
     self->cur_idx += 1;
+    self->col += 1;
 }
 
 static
@@ -54,6 +68,8 @@ Lexer_check_newline_marking(
     if (self->should_mark_newline) {
         self->should_mark_newline = false;
         self->nl_idx = self->cur_idx;
+        self->row += 1;
+        self->col = 0;
     }
 }
 
@@ -65,15 +81,6 @@ Lexer_set_state(
     State stat
 ) {
     self->stat = (u8)stat;
-}
-
-static
-void
-Lexer_set_error_kind(
-    Lexer * self,
-    LexErrKind kind
-) {
-    self->err.kind = kind;
 }
 
 static
@@ -97,10 +104,8 @@ Lexer_mark_newline(
     }
 
     LineInfo info;
-    info.off = self->nl_idx;
-    info.len = end_idx - self->nl_idx;
+    LineInfo_init(&info, self->nl_idx, end_idx - self->nl_idx, eol);
     if (!LineCache_push(&self->lc, &info)) {
-        Lexer_set_error_kind(self, LexErrKind_NoMem);
         return false;
     }
 
@@ -116,7 +121,6 @@ Lexer_collect_str_byte(
     u8 byte
 ) {
     if (!MutBuf_push(&self->str, byte)) {
-        Lexer_set_error_kind(self, LexErrKind_NoMem);
         return false;
     }
 
@@ -130,11 +134,73 @@ Lexer_add_tagonly_token(
     TokTag tag
 ) {
     if (!TokSeq_push_tagonly(&self->stm, tag)) {
-        Lexer_set_error_kind(self, LexErrKind_NoMem);
         return false;
     }
 
     return true;
+}
+
+typedef struct _KwTok {
+    const char * cstr;
+    TokTag tag;
+} KwTok;
+
+/* Reserved keyword entries. */
+static
+KwTok *
+RKW_ENTRIES[] = {
+    (KwTok[]) { { NULL, 0 } },
+    (KwTok[]) { { NULL, 0 } },
+    (KwTok[]) {
+        { "fn", TokTag_Fn },
+        { "if", TokTag_If },
+        { NULL, 0 },
+    },
+    (KwTok[]) {
+        { "let", TokTag_Let },
+        { NULL, 0 },
+    },
+    (KwTok[]) {
+        { "else", TokTag_Else },
+        { NULL, 0 },
+    },
+    (KwTok[]) {
+        { NULL, 0 },
+    },
+    (KwTok[]) {
+        { "return", TokTag_Return },
+        { NULL, 0 },
+    },
+};
+
+// Number of the reserved keyword entries.
+static const usize NUM_RKW_ENTRIES =
+    sizeof(RKW_ENTRIES) / sizeof(RKW_ENTRIES[0]);
+
+// Maximum length of the reserved keywords
+static const usize MAX_RKW_LENGTH = NUM_RKW_ENTRIES - 1;
+
+static
+bool
+name_to_keyword(
+    BufSlice name,
+    TokTag * tag
+) {
+    if (name.len > MAX_RKW_LENGTH) {
+        return false;
+    }
+
+    KwTok * tok = RKW_ENTRIES[name.len];
+    while (tok->cstr != NULL) {
+        if (strncmp((char *)name.buf, tok->cstr, name.len) == 0) {
+            *tag = tok->tag;
+            return true;
+        }
+
+        tok += 1;
+    }
+
+    return false;
 }
 
 static
@@ -143,12 +209,12 @@ Lexer_add_name_token(
     Lexer * self,
     BufSlice name
 ) {
-    if (!TokSeq_push_name(&self->stm, name)) {
-        Lexer_set_error_kind(self, LexErrKind_NoMem);
-        return false;
+    TokTag tag;
+    if (name_to_keyword(name, &tag)) {
+        return TokSeq_push_tagonly(&self->stm, tag);
+    } else {
+        return TokSeq_push_name(&self->stm, name);
     }
-
-    return true;
 }
 
 static
@@ -194,7 +260,7 @@ Lexer_run_fsm_start(
     // LF character
     if (byte == '\n') {
         if (!Lexer_mark_newline(self, Eol_Lf)) {
-            return Action_Error;
+            return Action_Panic;
         }
 
         return Action_Continue;
@@ -203,7 +269,7 @@ Lexer_run_fsm_start(
     // Name characters
     if (is_name_start_byte(byte)) {
         if (!Lexer_collect_str_byte(self, byte)) {
-            return Action_Error;
+            return Action_Panic;
         }
 
         Lexer_set_state(self, State_Name);
@@ -226,6 +292,7 @@ Lexer_run_fsm_start(
         Lexer_set_state(self, State_AssignOrEqual);
         return Action_Continue;
     }
+    case ',': tag = TokTag_Comma; break;
     case ':': tag = TokTag_Colon; break;
     case ';': tag = TokTag_Semicolon; break;
 
@@ -237,11 +304,14 @@ Lexer_run_fsm_start(
     case '}': tag = TokTag_RightBrace; break;
 
     default:
-        // TODO: Invalid byte error
-        return Action_Error;
+        if (!Lexer_report_error_invalid_byte(self, byte)) {
+            return Action_Panic;
+        }
+
+        return Action_Continue;
     }
     if (!Lexer_add_tagonly_token(self, tag)) {
-        return Action_Error;
+        return Action_Panic;
     }
 
     return Action_Continue;
@@ -265,7 +335,7 @@ Lexer_run_fsm_cr(
     }
 
     if (!Lexer_mark_newline(self, eol)) {
-        return Action_Error;
+        return Action_Panic;
     }
 
     Lexer_set_state(self, State_Start);
@@ -282,17 +352,19 @@ Lexer_run_fsm_name(
     Action act;
     if (is_name_other_byte(byte)) {
         if (!Lexer_collect_str_byte(self, byte)) {
-            return Action_Error;
+            return Action_Panic;
         }
 
         act = Action_Continue;
     } else {
         BufSlice name = MutBuf_as_slice(&self->str);
         if (!Lexer_add_name_token(self, name)) {
-            return Action_Error;
+            return Action_Panic;
         }
 
         MutBuf_clear(&self->str);
+
+        Lexer_set_state(self, State_Start);
 
         act = Action_Again;
     }
@@ -309,13 +381,13 @@ Lexer_run_fsm_minus_or_right_arrow(
     Action act;
     if (byte == '>') {
         if (!Lexer_add_tagonly_token(self, TokTag_RightArrow)) {
-            return Action_Error;
+            return Action_Panic;
         }
 
         act = Action_Continue;
     } else {
         if (!Lexer_add_tagonly_token(self, TokTag_Hyphen)) {
-            return Action_Error;
+            return Action_Panic;
         }
 
         act = Action_Again;
@@ -335,13 +407,13 @@ Lexer_run_fsm_assign_or_equal(
     Action act;
     if (byte == '=') {
         if (!Lexer_add_tagonly_token(self, TokTag_Equal)) {
-            return Action_Error;
+            return Action_Panic;
         }
 
         act = Action_Continue;
     } else {
         if (!Lexer_add_tagonly_token(self, TokTag_Assign)) {
-            return Action_Error;
+            return Action_Panic;
         }
 
         act = Action_Again;
@@ -379,7 +451,7 @@ Lexer_feed_byte(
     while (true) {
         switch (Lexer_run_fsm(self, byte)) {
         case Action_Continue:
-            Lexer_increment_current_index(self);
+            Lexer_post_byte_consumption(self);
             Lexer_check_newline_marking(self);
             return true;
 
@@ -387,9 +459,68 @@ Lexer_feed_byte(
             Lexer_check_newline_marking(self);
             continue;
 
-        case Action_Error:
+        case Action_Panic:
             return false;
         }
+    }
+}
+
+static
+bool
+Lexer_feed_eol(
+    Lexer * self
+) {
+    switch ((State)self->stat) {
+    case State_Start:
+        if (!Lexer_mark_newline(self, Eol_None)) {
+            return false;
+        }
+
+        return true;
+
+    case State_Cr:
+        if (!Lexer_mark_newline(self, Eol_Cr)) {
+            return false;
+        }
+
+        return true;
+
+    case State_Name: {
+        BufSlice name = MutBuf_as_slice(&self->str);
+        if (!Lexer_add_name_token(self, name)) {
+            return false;
+        }
+
+        MutBuf_clear(&self->str);
+
+        if (!Lexer_mark_newline(self, Eol_None)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    case State_MinusOrRightArrow:
+        if (!Lexer_add_tagonly_token(self, TokTag_Hyphen)) {
+            return false;
+        }
+
+        if (!Lexer_mark_newline(self, Eol_None)) {
+            return false;
+        }
+
+        return true;
+
+    case State_AssignOrEqual:
+        if (!Lexer_add_tagonly_token(self, TokTag_Assign)) {
+            return false;
+        }
+
+        if (!Lexer_mark_newline(self, Eol_None)) {
+            return false;
+        }
+
+        return true;
     }
 }
 
@@ -404,19 +535,41 @@ Lexer_tokenize(
         }
     }
 
+    if (!Lexer_feed_eol(self)) {
+        return false;
+    }
+
     return true;
 }
 
 void
 Lexer_extract(
     Lexer * self,
-    TokSeq * seq
-);
+    LineCache * lc,
+    TokSeq * stm,
+    LexRpt * rpt
+) {
+    if (lc != NULL) {
+        memcpy(lc, &self->lc, sizeof(LineCache));
+        LineCache_init(&self->lc);
+    }
+
+    if (stm != NULL) {
+        memcpy(stm, &self->stm, sizeof(TokSeq));
+        TokSeq_init(&self->stm);
+    }
+
+    if (rpt != NULL) {
+        memcpy(rpt, &self->rpt, sizeof(LexRpt));
+        LexRpt_init(&self->rpt);
+    }
+}
 
 void
 Lexer_deinit(
     Lexer * self
 ) {
+    LexRpt_deinit(&self->rpt);
     TokSeq_deinit(&self->stm);
     MutBuf_deinit(&self->str);
     LineCache_deinit(&self->lc);

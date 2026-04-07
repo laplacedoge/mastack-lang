@@ -2,13 +2,24 @@
 #define __MASTACK_LEXER_LINE_H__
 
 #include "util/mut_buf.h"
+#include "util/buf_writer.h"
+
+typedef enum _Eol {
+    Eol_None,
+    Eol_Cr,
+    Eol_Lf,
+    Eol_CrLf,
+} Eol;
 
 /**
  * @brief Line info.
  */
 typedef struct _LineInfo {
-    usize off;  // The offset of the first byte of this line
-    usize len;  // The length of this line
+    // usize off;  // The offset of the first byte of this line
+    // usize len;  // The length of this line
+    u64 off:31; // The offset of the first byte of this line
+    u64 len:31; // The length of this line
+    u64 eol:2;
 } LineInfo;
 
 static
@@ -17,11 +28,19 @@ void
 LineInfo_init(
     LineInfo * self,
     usize off,
-    usize len
+    usize len,
+    Eol eol
 ) {
     self->off = off;
     self->len = len;
+    self->eol = eol;
 }
+
+bool
+LineInfo_write(
+    LineInfo * self,
+    BufWriter * wrt
+);
 
 void
 LineInfo_deinit(
@@ -65,6 +84,12 @@ LineCache_count(
 ) {
     return self->cnt;
 }
+
+bool
+LineCache_write(
+    LineCache * self,
+    BufWriter * wrt
+);
 
 void
 LineCache_clear(

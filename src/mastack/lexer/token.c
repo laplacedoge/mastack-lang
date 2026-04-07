@@ -10,7 +10,9 @@ TokTag_to_str(
     switch (tag) {
     case TokTag_Name:           return "name";
     case TokTag_Int:            return "integer";
+    case TokTag_Else:           return "else";
     case TokTag_Fn:             return "fn";
+    case TokTag_If:             return "if";
     case TokTag_Let:            return "let";
     case TokTag_Return:         return "return";
     case TokTag_Plus:           return "+";
@@ -26,6 +28,7 @@ TokTag_to_str(
     case TokTag_Dot:            return ".";
     case TokTag_RightArrow:     return "->";
     case TokTag_Assign:         return "=";
+    case TokTag_Comma:          return ",";
     case TokTag_Colon:          return ":";
     case TokTag_Semicolon:      return ";";
     case TokTag_LeftParen:      return "(";
@@ -219,24 +222,24 @@ TokSeq_write(
 ) {
     bool res = false;
 
-    usize num_toks = TokSeq_Count(self);
-    if (!BufWriter_write_fmt(wrt, "<TokSeq(%zu): [", num_toks)) {
+    usize cnt = TokSeq_count(self);
+    if (!BufWriter_write_fmt(wrt, "<TokSeq(%zu): [", cnt)) {
         goto Exit;
     }
 
-    if (num_toks == 1) {
-        const Token * tok = TokSeq_At(self, 0);
+    if (cnt == 1) {
+        const Token * tok = TokSeq_at(self, 0);
         if (!Token_write(tok, wrt)) {
             goto Exit;
         }
-    } else if (num_toks > 1) {
-        const Token * tok = TokSeq_At(self, 0);
+    } else if (cnt > 1) {
+        const Token * tok = TokSeq_at(self, 0);
         if (!Token_write(tok, wrt)) {
             goto Exit;
         }
 
-        for (usize i = 0; i < num_toks - 1; i++) {
-            const Token * tok = TokSeq_At(self, i);
+        for (usize i = 1; i < cnt; i++) {
+            const Token * tok = TokSeq_at(self, i);
             if (!BufWriter_write_str(wrt, ", ") ||
                 !Token_write(tok, wrt)) {
 

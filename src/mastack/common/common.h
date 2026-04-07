@@ -72,4 +72,7 @@ BufSlice_copy_escaped(
     u8 * buf
 );
 
+#define SHORTEN_NAME(long, short)   \
+    typeof(long) * short = &long
+
 #endif

@@ -8,7 +8,9 @@ typedef enum _TokTag {
     TokTag_Name,            // Name, e.g. identifier
     TokTag_Int,             // Integer
 
+    TokTag_Else,            // The keyword `else`
     TokTag_Fn,              // The keyword `fn`
+    TokTag_If,              // The keyword `if`
     TokTag_Let,             // The keyword `let`
     TokTag_Return,          // The keyword `return`
 
@@ -28,6 +30,7 @@ typedef enum _TokTag {
     TokTag_RightArrow,      // Right arrow `->`
 
     TokTag_Assign,          // Equal `=`
+    TokTag_Comma,           // Colon `,`
     TokTag_Colon,           // Colon `:`
     TokTag_Semicolon,       // Semicolon `;`
 
@@ -124,7 +127,7 @@ TokSeq_push_tagonly(
 static
 inline
 Token *
-TokSeq_At(
+TokSeq_at(
     TokSeq * self,
     usize idx
 ) {
@@ -134,7 +137,7 @@ TokSeq_At(
 static
 inline
 usize
-TokSeq_Count(
+TokSeq_count(
     TokSeq * self
 ) {
     return self->cnt;

@@ -1,7 +1,19 @@
-
 #include "line.h"
 
-
+bool
+LineInfo_write(
+    LineInfo * self,
+    BufWriter * wrt
+) {
+    const char * eol;
+    switch (self->eol) {
+    case Eol_None: eol = "NONE"; break;
+    case Eol_Cr: eol = "CR"; break;
+    case Eol_Lf: eol = "LF"; break;
+    case Eol_CrLf: eol = "CRLF"; break;
+    }
+    return BufWriter_write_fmt(wrt, "<@%zu+%zu|%s>", self->off, self->len, eol);
+}
 
 void
 LineInfo_deinit(
@@ -31,6 +43,49 @@ LineCache_push(
     self->cnt += 1;
 
     return true;
+}
+
+bool
+LineCache_write(
+    LineCache * self,
+    BufWriter * wrt
+) {
+    bool res = false;
+
+    usize cnt = LineCache_count(self);
+    if (!BufWriter_write_fmt(wrt, "<LineInfo(%zu): [", cnt)) {
+        goto Exit;
+    }
+
+    if (cnt == 1) {
+        LineInfo * info = LineCache_at(self, 0);
+        if (!LineInfo_write(info, wrt)) {
+            goto Exit;
+        }
+    } else if (cnt > 1) {
+        LineInfo * info = LineCache_at(self, 0);
+        if (!LineInfo_write(info, wrt)) {
+            goto Exit;
+        }
+
+        for (usize i = 1; i < cnt; i++) {
+            LineInfo * info = LineCache_at(self, i);
+            if (!BufWriter_write_str(wrt, ", ") ||
+                !LineInfo_write(info, wrt)) {
+
+                goto Exit;
+            }
+        }
+    }
+
+    if (!BufWriter_write_str(wrt, "]>")) {
+        goto Exit;
+    }
+
+    res = true;
+
+Exit:
+    return res;
 }
 
 void
