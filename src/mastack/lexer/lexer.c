@@ -140,45 +140,50 @@ Lexer_add_tagonly_token(
     return true;
 }
 
-typedef struct _KwTok {
+/**
+ * @brief String-token pair.
+ */
+typedef struct _StPair {
     const char * cstr;
     TokTag tag;
-} KwTok;
+} StPair;
 
-/* Reserved keyword entries. */
+/* Keyword/literal entries. */
 static
-KwTok *
-RKW_ENTRIES[] = {
-    (KwTok[]) { { NULL, 0 } },
-    (KwTok[]) { { NULL, 0 } },
-    (KwTok[]) {
+StPair *
+KL_ENTRIES[] = {
+    (StPair[]) { { NULL, 0 } },
+    (StPair[]) { { NULL, 0 } },
+    (StPair[]) {
         { "fn", TokTag_Fn },
         { "if", TokTag_If },
         { NULL, 0 },
     },
-    (KwTok[]) {
+    (StPair[]) {
         { "let", TokTag_Let },
         { NULL, 0 },
     },
-    (KwTok[]) {
+    (StPair[]) {
         { "else", TokTag_Else },
+        { "true", TokTag_True },
         { NULL, 0 },
     },
-    (KwTok[]) {
+    (StPair[]) {
+        { "false", TokTag_False },
         { NULL, 0 },
     },
-    (KwTok[]) {
+    (StPair[]) {
         { "return", TokTag_Return },
         { NULL, 0 },
     },
 };
 
-// Number of the reserved keyword entries.
-static const usize NUM_RKW_ENTRIES =
-    sizeof(RKW_ENTRIES) / sizeof(RKW_ENTRIES[0]);
+// Number of the keyword/literal entries.
+static const usize NUM_KL_ENTRIES =
+    sizeof(KL_ENTRIES) / sizeof(KL_ENTRIES[0]);
 
-// Maximum length of the reserved keywords
-static const usize MAX_RKW_LENGTH = NUM_RKW_ENTRIES - 1;
+// Maximum length of the keyword/literal string.
+static const usize MAX_KL_LENGTH = NUM_KL_ENTRIES - 1;
 
 static
 bool
@@ -186,11 +191,11 @@ name_to_keyword(
     BufSlice name,
     TokTag * tag
 ) {
-    if (name.len > MAX_RKW_LENGTH) {
+    if (name.len > MAX_KL_LENGTH) {
         return false;
     }
 
-    KwTok * tok = RKW_ENTRIES[name.len];
+    StPair * tok = KL_ENTRIES[name.len];
     while (tok->cstr != NULL) {
         if (strncmp((char *)name.buf, tok->cstr, name.len) == 0) {
             *tag = tok->tag;

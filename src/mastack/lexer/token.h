@@ -14,6 +14,9 @@ typedef enum _TokTag {
     TokTag_Let,             // The keyword `let`
     TokTag_Return,          // The keyword `return`
 
+    TokTag_False,           // Boolean literal 'false'
+    TokTag_True,            // Boolean literal 'true'
+
     TokTag_Plus,            // Plus `+`
     TokTag_Hyphen,          // Hyphen `-`
     TokTag_Asterisk,        // Asterisk `*`

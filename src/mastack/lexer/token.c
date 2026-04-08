@@ -15,6 +15,8 @@ TokTag_to_str(
     case TokTag_If:             return "if";
     case TokTag_Let:            return "let";
     case TokTag_Return:         return "return";
+    case TokTag_False:          return "false";
+    case TokTag_True:           return "true";
     case TokTag_Plus:           return "+";
     case TokTag_Hyphen:         return "-";
     case TokTag_Asterisk:       return "*";
@@ -66,6 +68,12 @@ Token_write(
         BufSlice text = ImmBuf_as_slice(&tok->v.name.buf);
         usize val = tok->v.int_.val;
         return BufWriter_write_fmt(wrt, "<%s: %zu>", str, val);
+    }
+
+    if (tok->tag == TokTag_False ||
+        tok->tag == TokTag_True) {
+
+        return BufWriter_write_fmt(wrt, "<boolean_literal: %s>", str);
     }
 
     if (tok->tag == TokTag_Remark) {
