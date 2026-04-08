@@ -53,7 +53,7 @@ LineCache_write(
     bool res = false;
 
     usize cnt = LineCache_count(self);
-    if (!BufWriter_write_fmt(wrt, "<LineInfo(%zu): [", cnt)) {
+    if (!BufWriter_write_fmt(wrt, "<LineCache(%zu): [", cnt)) {
         goto Exit;
     }
 
