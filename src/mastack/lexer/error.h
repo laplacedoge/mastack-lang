@@ -3,6 +3,7 @@
 
 #include "common/common.h"
 #include "util/mut_buf.h"
+#include "util/buf_writer.h"
 
 /**
  * @brief Lexer error kind.
@@ -36,6 +37,12 @@ LexErr_init_invalid_byte(
     usize row,
     usize col,
     u8 byte
+);
+
+bool
+LexErr_write(
+    LexErr * self,
+    BufWriter * wrt
 );
 
 void
@@ -94,6 +101,12 @@ LexRpt_at(
         LexErr * name = LexRpt_at(self, i);             \
         code                                            \
     }
+
+bool
+LexRpt_write(
+    LexRpt * self,
+    BufWriter * wrt
+);
 
 void
 LexRpt_clear(
