@@ -6,6 +6,7 @@ typedef enum _State: u8 {
     State_Start,
     State_Cr,
     State_Name,
+    State_Integer,
     State_MinusOrRightArrow,
     State_AssignOrEqual,
 } State;
@@ -128,6 +129,26 @@ Lexer_collect_str_byte(
 }
 
 static
+void
+Lexer_reset_integer_cache(
+    Lexer * self
+) {
+    self->int_.val = 0;
+    self->int_.cnt = 0;
+}
+
+static
+void
+Lexer_collect_integer_byte(
+    Lexer * self,
+    u8 byte
+) {
+    self->int_.val *= 10;
+    self->int_.val += byte - '0';
+    self->int_.cnt += 1;
+}
+
+static
 bool
 Lexer_add_tagonly_token(
     Lexer * self,
@@ -224,6 +245,15 @@ Lexer_add_name_token(
 
 static
 bool
+Lexer_add_integer_token(
+    Lexer * self,
+    usize val
+) {
+    return TokSeq_push_integer(&self->stm, val);
+}
+
+static
+bool
 is_name_start_byte(
     u8 byte
 ) {
@@ -241,6 +271,14 @@ is_name_other_byte(
         'a' <= byte && byte <= 'z' ||
         '0' <= byte && byte <= '9' ||
         byte == '_';
+}
+
+static
+bool
+is_integer_byte(
+    u8 byte
+) {
+    return '0' <= byte && byte <= '9';
 }
 
 static
@@ -268,6 +306,15 @@ Lexer_run_fsm_start(
             return Action_Panic;
         }
 
+        return Action_Continue;
+    }
+
+    // Integer characters
+    if (is_integer_byte(byte)) {
+        Lexer_reset_integer_cache(self);
+        Lexer_collect_integer_byte(self, byte);
+
+        Lexer_set_state(self, State_Integer);
         return Action_Continue;
     }
 
@@ -379,6 +426,28 @@ Lexer_run_fsm_name(
 
 static
 Action
+Lexer_run_fsm_integer(
+    Lexer * self,
+    u8 byte
+) {
+    Action act;
+    if (is_integer_byte(byte)) {
+        Lexer_collect_integer_byte(self, byte);
+        act = Action_Continue;
+    } else {
+        usize val = (usize)self->int_.val;
+        if (!Lexer_add_integer_token(self, val)) {
+            return Action_Panic;
+        }
+        Lexer_set_state(self, State_Start);
+        act = Action_Again;
+    }
+
+    return act;
+}
+
+static
+Action
 Lexer_run_fsm_minus_or_right_arrow(
     Lexer * self,
     u8 byte
@@ -440,6 +509,7 @@ Lexer_run_fsm(
     case State_Start:               act = Lexer_run_fsm_start(self, byte); break;
     case State_Cr:                  act = Lexer_run_fsm_cr(self, byte); break;
     case State_Name:                act = Lexer_run_fsm_name(self, byte); break;
+    case State_Integer:             act = Lexer_run_fsm_integer(self, byte); break;
     case State_MinusOrRightArrow:   act = Lexer_run_fsm_minus_or_right_arrow(self, byte); break;
     case State_AssignOrEqual:       act = Lexer_run_fsm_assign_or_equal(self, byte); break;
     }
@@ -499,6 +569,15 @@ Lexer_feed_eol(
         MutBuf_clear(&self->str);
 
         if (!Lexer_mark_newline(self, Eol_None)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    case State_Integer: {
+        usize val = (usize)self->int_.val;
+        if (!Lexer_add_integer_token(self, val)) {
             return false;
         }
 

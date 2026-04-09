@@ -11,6 +11,10 @@ typedef struct _Lexer {
     u32 should_mark_newline:1;
 
     LineCache lc;   // Line cache
+    struct {
+        u128 val;
+        u8 cnt;
+    } int_;
     MutBuf str;
     TokSeq stm;
     LexRpt rpt;
