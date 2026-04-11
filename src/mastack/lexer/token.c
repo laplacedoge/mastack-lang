@@ -47,7 +47,7 @@ TokTag_to_str(
     case TokTag_LeftBrace:      return "{";
     case TokTag_RightBrace:     return "}";
 
-    case TokTag_Remark:         return "remark";
+    case TokTag_SlComment:      return "sl_comment";
     }
 }
 
@@ -84,7 +84,7 @@ Token_write(
         return BufWriter_write_fmt(wrt, "<boolean_literal: %s>", str);
     }
 
-    if (tok->tag == TokTag_Remark) {
+    if (tok->tag == TokTag_SlComment) {
         BufSlice src_slice = ImmBuf_as_slice(&tok->v.name.buf);
 
         ImmBuf esc_text;
@@ -122,8 +122,8 @@ Token_deinit(
         ImmBuf_deinit(&tok->v.name.buf);
         break;
 
-    case TokTag_Remark:
-        ImmBuf_deinit(&tok->v.name.buf);
+    case TokTag_SlComment:
+        ImmBuf_deinit(&tok->v.sl_cmt.buf);
         break;
 
     default:
@@ -194,18 +194,18 @@ TokSeq_push_integer(
 }
 
 bool
-TokSeq_push_remark(
+TokSeq_push_single_line_comment(
     TokSeq * self,
-    BufSlice name
+    BufSlice comment
 ) {
     ImmBuf buf;
-    if (!ImmBuf_init_from_slice(&buf, name)) {
+    if (!ImmBuf_init_from_slice(&buf, comment)) {
         return NULL;
     }
 
     Token tok;
-    Token_init_tagonly(&tok, TokTag_Remark);
-    tok.v.remark.buf = buf;
+    Token_init_tagonly(&tok, TokTag_SlComment);
+    tok.v.sl_cmt.buf = buf;
 
     if (!TokSeq_push(self, &tok)) {
         goto DeinitTok;

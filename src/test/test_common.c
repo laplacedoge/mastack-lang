@@ -9,7 +9,8 @@ TEST Test_demo(void) {
     TokSeq seq;
     TokSeq_init(&seq);
 
-    ASSERT(TokSeq_push_remark(&seq, BufSlice_new_from_str(" A simple \"assignment statement\"")));
+    ASSERT(TokSeq_push_single_line_comment(&seq,
+        BufSlice_new_from_str(" A simple \"assignment statement\"")));
     ASSERT(TokSeq_push_tagonly(&seq, TokTag_Let));
     ASSERT(TokSeq_push_name(&seq, BufSlice_new_from_str("age")));
     ASSERT(TokSeq_push_tagonly(&seq, TokTag_Colon));

@@ -9,6 +9,8 @@ typedef enum _State: u8 {
     State_Integer,
     State_MinusOrRightArrow,
     State_AssignOrEqual,
+    State_ForwardSlashOrSingleLineComment,
+    State_SingleLineComment,
 } State;
 
 typedef enum _Action {
@@ -254,6 +256,19 @@ Lexer_add_integer_token(
 
 static
 bool
+Lexer_add_single_line_comment_token(
+    Lexer * self
+) {
+    BufSlice buf = MutBuf_as_slice(&self->str);
+    bool res = TokSeq_push_single_line_comment(&self->stm, buf);
+
+    MutBuf_clear(&self->str);
+
+    return res;
+}
+
+static
+bool
 is_name_start_byte(
     u8 byte
 ) {
@@ -336,7 +351,10 @@ Lexer_run_fsm_start(
         return Action_Continue;
     }
     case '*': tag = TokTag_Asterisk; break;
-    case '/': tag = TokTag_ForwardSlash; break;
+    case '/': {
+        Lexer_set_state(self, State_ForwardSlashOrSingleLineComment);
+        return Action_Continue;
+    }
 
     case '.': tag = TokTag_Dot; break;
 
@@ -500,6 +518,50 @@ Lexer_run_fsm_assign_or_equal(
 
 static
 Action
+Lexer_run_fsm_forward_slash_or_single_line_comment(
+    Lexer * self,
+    u8 byte
+) {
+    if (byte == '/') {
+        Lexer_set_state(self, State_SingleLineComment);
+        return Action_Continue;
+    } else {
+        if (!Lexer_add_tagonly_token(self, TokTag_ForwardSlash)) {
+            return Action_Panic;
+        }
+
+        Lexer_set_state(self, State_Start);
+        return Action_Again;
+    }
+}
+
+static
+Action
+Lexer_run_fsm_single_line_comment(
+    Lexer * self,
+    u8 byte
+) {
+    if (byte == '\r' ||
+        byte == '\n') {
+
+        if (!Lexer_add_single_line_comment_token(self)) {
+            return Action_Panic;
+        }
+
+        Lexer_set_state(self, State_Start);
+
+        return Action_Again;
+    } {
+        if (!Lexer_collect_str_byte(self, byte)) {
+            return Action_Panic;
+        }
+
+        return Action_Continue;
+    }
+}
+
+static
+Action
 Lexer_run_fsm(
     Lexer * self,
     u8 byte
@@ -512,6 +574,10 @@ Lexer_run_fsm(
     case State_Integer:             act = Lexer_run_fsm_integer(self, byte); break;
     case State_MinusOrRightArrow:   act = Lexer_run_fsm_minus_or_right_arrow(self, byte); break;
     case State_AssignOrEqual:       act = Lexer_run_fsm_assign_or_equal(self, byte); break;
+    case State_ForwardSlashOrSingleLineComment:
+        act = Lexer_run_fsm_forward_slash_or_single_line_comment(self, byte);
+        break;
+    case State_SingleLineComment:   act = Lexer_run_fsm_single_line_comment(self, byte); break;
     }
 
     return act;
@@ -598,6 +664,28 @@ Lexer_feed_eol(
     case State_AssignOrEqual:
         if (!Lexer_add_tagonly_token(self, TokTag_Assign)) {
             return false;
+        }
+
+        if (!Lexer_mark_newline(self, Eol_None)) {
+            return false;
+        }
+
+        return true;
+
+    case State_ForwardSlashOrSingleLineComment:
+        if (!Lexer_add_tagonly_token(self, TokTag_ForwardSlash)) {
+            return false;
+        }
+
+        if (!Lexer_mark_newline(self, Eol_None)) {
+            return false;
+        }
+
+        return true;
+
+    case State_SingleLineComment:
+        if (!Lexer_add_single_line_comment_token(self)) {
+            return Action_Panic;
         }
 
         if (!Lexer_mark_newline(self, Eol_None)) {

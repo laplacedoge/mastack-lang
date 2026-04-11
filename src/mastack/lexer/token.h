@@ -44,7 +44,7 @@ typedef enum _TokTag {
     TokTag_LeftBrace,       // Left bracket `{`
     TokTag_RightBrace,      // Right bracket `}`
 
-    TokTag_Remark,          // Remark
+    TokTag_SlComment,       // Single-line comment
 } TokTag;
 
 typedef struct _Token {
@@ -63,10 +63,10 @@ typedef struct _Token {
             usize val;
         } int_;
 
-        // For the remark token
+        // For the single-line comment token
         struct {
             ImmBuf buf;
-        } remark;
+        } sl_cmt;
     } v;
 } Token;
 
@@ -116,9 +116,9 @@ TokSeq_push_integer(
 );
 
 bool
-TokSeq_push_remark(
+TokSeq_push_single_line_comment(
     TokSeq * self,
-    BufSlice name
+    BufSlice comment
 );
 
 bool

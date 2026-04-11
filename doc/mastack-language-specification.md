@@ -13,6 +13,8 @@
   - [4.3. Structure](#43-structure)
     - [4.3.1. Structure Definition](#431-structure-definition)
   - [4.4. Flow Control](#44-flow-control)
+- [5. Comments](#5-comments)
+  - [5.1. Single-line Comments](#51-single-line-comments)
 
 # 2. Type Implementation
 
@@ -109,3 +111,12 @@ struct Person {
 ```
 
 ## 4.4. Flow Control
+
+# 5. Comments
+
+## 5.1. Single-line Comments
+
+```mastack
+// This is not a code but a comment!
+let PI: Float = 3.14  // Define the constant PI
+```
