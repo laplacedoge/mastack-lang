@@ -1,21 +1,20 @@
 
-# Table of Contents
-- [Table of Contents](#table-of-contents)
-- [Type Implementation](#type-implementation)
-- [Types](#types)
-  - [Primitive Types](#primitive-types)
-  - [Compound Types](#compound-types)
-    - [Tuple Types](#tuple-types)
-    - [Object Types](#object-types)
-- [Statements](#statements)
-  - [Variable Definition and Initialization](#variable-definition-and-initialization)
-  - [Function Definition and Invocation](#function-definition-and-invocation)
-  - [Structure](#structure)
-    - [Structure Definition](#structure-definition)
-  - [Flow Control](#flow-control)
-    - [](#)
+# 1. Table of Contents
+- [1. Table of Contents](#1-table-of-contents)
+- [2. Type Implementation](#2-type-implementation)
+- [3. Types](#3-types)
+  - [3.1. Primitive Types](#31-primitive-types)
+  - [3.2. Compound Types](#32-compound-types)
+    - [3.2.1. Tuple Types](#321-tuple-types)
+    - [3.2.2. Object Types](#322-object-types)
+- [4. Statements](#4-statements)
+  - [4.1. Variable Definition and Initialization](#41-variable-definition-and-initialization)
+  - [4.2. Function Definition and Invocation](#42-function-definition-and-invocation)
+  - [4.3. Structure](#43-structure)
+    - [4.3.1. Structure Definition](#431-structure-definition)
+  - [4.4. Flow Control](#44-flow-control)
 
-# Type Implementation
+# 2. Type Implementation
 
 For built-in types, the operators are mapped into different functions.
 
@@ -31,9 +30,9 @@ Operator mapping table:
 |   `\|`   |  `__or__`   |
 |   `!`    |  `__not__`  |
 
-# Types
+# 3. Types
 
-## Primitive Types
+## 3.1. Primitive Types
 
 - Integer `let var_integer: Integer = 47`
   The value is alway owned by the variable, alway copied while passed through function.
@@ -45,6 +44,7 @@ Operator mapping table:
   The value is alway owned by the variable, alway copied while passed through function.
 
 - String `let var_string: String = s"Hello, world!\n"`
+
 - Blob `let var_blob: Blob = b"\xAA\x55\x1F\x1B\x1A"`
 
 - Option `let var_possible_integer: Integer? = nil`
@@ -55,15 +55,15 @@ Operator mapping table:
 
 - Structure
 
-## Compound Types
+## 3.2. Compound Types
 
-### Tuple Types
+### 3.2.1. Tuple Types
 
-### Object Types
+### 3.2.2. Object Types
 
-# Statements
+# 4. Statements
 
-## Variable Definition and Initialization
+## 4.1. Variable Definition and Initialization
 
 - Variable definition
   ```mastack
@@ -75,7 +75,7 @@ Operator mapping table:
   let PI: Float = 3.14
   ```
 
-## Function Definition and Invocation
+## 4.2. Function Definition and Invocation
 
 - Function definition
   ```mastack
@@ -89,9 +89,9 @@ Operator mapping table:
   let c = a * add(b, c)
   ```
 
-## Structure
+## 4.3. Structure
 
-### Structure Definition
+### 4.3.1. Structure Definition
 ```mastack
 struct Person {
     let name: String
@@ -108,6 +108,4 @@ struct Person {
 }
 ```
 
-## Flow Control
-
-###
+## 4.4. Flow Control
