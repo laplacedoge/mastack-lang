@@ -234,24 +234,32 @@ name_to_keyword(
 static
 bool
 Lexer_add_name_token(
-    Lexer * self,
-    BufSlice name
+    Lexer * self
 ) {
     TokTag tag;
+    bool res;
+    BufSlice name = MutBuf_as_slice(&self->str);
     if (name_to_keyword(name, &tag)) {
-        return TokSeq_push_tagonly(&self->stm, tag);
+        res = TokSeq_push_tagonly(&self->stm, tag);
     } else {
-        return TokSeq_push_name(&self->stm, name);
+        res = TokSeq_push_name(&self->stm, name);
     }
+
+    MutBuf_clear(&self->str);
+
+    return res;
 }
 
 static
 bool
 Lexer_add_integer_token(
-    Lexer * self,
-    usize val
+    Lexer * self
 ) {
-    return TokSeq_push_integer(&self->stm, val);
+    bool res = TokSeq_push_integer(&self->stm, (usize)self->int_.val);
+
+    MutBuf_clear(&self->str);
+
+    return res;
 }
 
 static
@@ -419,27 +427,21 @@ Lexer_run_fsm_name(
     Lexer * self,
     u8 byte
 ) {
-    Action act;
     if (is_name_other_byte(byte)) {
         if (!Lexer_collect_str_byte(self, byte)) {
             return Action_Panic;
         }
 
-        act = Action_Continue;
+        return Action_Continue;
     } else {
-        BufSlice name = MutBuf_as_slice(&self->str);
-        if (!Lexer_add_name_token(self, name)) {
+        if (!Lexer_add_name_token(self)) {
             return Action_Panic;
         }
 
-        MutBuf_clear(&self->str);
-
         Lexer_set_state(self, State_Start);
 
-        act = Action_Again;
+        return Action_Again;
     }
-
-    return act;
 }
 
 static
@@ -448,20 +450,19 @@ Lexer_run_fsm_integer(
     Lexer * self,
     u8 byte
 ) {
-    Action act;
     if (is_integer_byte(byte)) {
         Lexer_collect_integer_byte(self, byte);
-        act = Action_Continue;
+
+        return Action_Continue;
     } else {
-        usize val = (usize)self->int_.val;
-        if (!Lexer_add_integer_token(self, val)) {
+        if (!Lexer_add_integer_token(self)) {
             return Action_Panic;
         }
-        Lexer_set_state(self, State_Start);
-        act = Action_Again;
-    }
 
-    return act;
+        Lexer_set_state(self, State_Start);
+
+        return Action_Again;
+    }
 }
 
 static
@@ -622,25 +623,19 @@ Lexer_feed_eol(
         eol = Eol_Cr;
         break;
 
-    case State_Name: {
-        BufSlice name = MutBuf_as_slice(&self->str);
-        if (!Lexer_add_name_token(self, name)) {
-            goto Exit;
-        }
-
-        MutBuf_clear(&self->str);
-
-        break;
-    }
-
-    case State_Integer: {
-        usize val = (usize)self->int_.val;
-        if (!Lexer_add_integer_token(self, val)) {
+    case State_Name:
+        if (!Lexer_add_name_token(self)) {
             goto Exit;
         }
 
         break;
-    }
+
+    case State_Integer:
+        if (!Lexer_add_integer_token(self)) {
+            goto Exit;
+        }
+
+        break;
 
     case State_MinusOrRightArrow:
         if (!Lexer_add_tagonly_token(self, TokTag_Hyphen)) {
