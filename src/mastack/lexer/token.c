@@ -10,35 +10,43 @@ TokTag_to_str(
     switch (tag) {
     case TokTag_Name:           return "name";
     case TokTag_Int:            return "integer";
+
     case TokTag_Else:           return "else";
     case TokTag_Fn:             return "fn";
     case TokTag_If:             return "if";
     case TokTag_Let:            return "let";
     case TokTag_Return:         return "return";
+
     case TokTag_False:          return "false";
     case TokTag_True:           return "true";
+
     case TokTag_Plus:           return "+";
     case TokTag_Hyphen:         return "-";
     case TokTag_Asterisk:       return "*";
     case TokTag_ForwardSlash:   return "/";
+
     case TokTag_Equal:          return "==";
     case TokTag_NotEqual:       return "!=";
     case TokTag_GreaterThan:    return ">";
     case TokTag_Gte:            return ">=";
     case TokTag_LessThan:       return "<";
     case TokTag_Lte:            return "<=";
+
     case TokTag_Dot:            return ".";
     case TokTag_RightArrow:     return "->";
+
     case TokTag_Assign:         return "=";
     case TokTag_Comma:          return ",";
     case TokTag_Colon:          return ":";
     case TokTag_Semicolon:      return ";";
+
     case TokTag_LeftParen:      return "(";
     case TokTag_RightParen:     return ")";
     case TokTag_LeftBracket:    return "[";
     case TokTag_RightBracket:   return "]";
     case TokTag_LeftBrace:      return "{";
     case TokTag_RightBrace:     return "}";
+
     case TokTag_Remark:         return "remark";
     }
 }
