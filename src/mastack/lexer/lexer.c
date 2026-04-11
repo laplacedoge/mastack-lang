@@ -611,89 +611,74 @@ bool
 Lexer_feed_eol(
     Lexer * self
 ) {
+    bool res = false;
+    Eol eol = Eol_None;
+
     switch ((State)self->stat) {
     case State_Start:
-        if (!Lexer_mark_newline(self, Eol_None)) {
-            return false;
-        }
-
-        return true;
+        break;
 
     case State_Cr:
-        if (!Lexer_mark_newline(self, Eol_Cr)) {
-            return false;
-        }
-
-        return true;
+        eol = Eol_Cr;
+        break;
 
     case State_Name: {
         BufSlice name = MutBuf_as_slice(&self->str);
         if (!Lexer_add_name_token(self, name)) {
-            return false;
+            goto Exit;
         }
 
         MutBuf_clear(&self->str);
 
-        if (!Lexer_mark_newline(self, Eol_None)) {
-            return false;
-        }
-
-        return true;
+        break;
     }
 
     case State_Integer: {
         usize val = (usize)self->int_.val;
         if (!Lexer_add_integer_token(self, val)) {
-            return false;
+            goto Exit;
         }
 
-        return true;
+        break;
     }
 
     case State_MinusOrRightArrow:
         if (!Lexer_add_tagonly_token(self, TokTag_Hyphen)) {
-            return false;
+            goto Exit;
         }
 
-        if (!Lexer_mark_newline(self, Eol_None)) {
-            return false;
-        }
-
-        return true;
+        break;
 
     case State_AssignOrEqual:
         if (!Lexer_add_tagonly_token(self, TokTag_Assign)) {
-            return false;
+            goto Exit;
         }
 
-        if (!Lexer_mark_newline(self, Eol_None)) {
-            return false;
-        }
-
-        return true;
+        break;
 
     case State_ForwardSlashOrSingleLineComment:
         if (!Lexer_add_tagonly_token(self, TokTag_ForwardSlash)) {
-            return false;
+            goto Exit;
         }
 
-        if (!Lexer_mark_newline(self, Eol_None)) {
-            return false;
-        }
-
-        return true;
+        break;
 
     case State_SingleLineComment:
         if (!Lexer_add_single_line_comment_token(self)) {
-            return Action_Panic;
+            goto Exit;
         }
 
-        if (!Lexer_mark_newline(self, Eol_None)) {
-            return false;
-        }
-
-        return true;
+        break;
     }
+
+    if (!Lexer_mark_newline(self, eol)) {
+        goto Exit;
+    }
+
+    res = true;
+
+Exit:
+    return res;
 }
 
 bool
