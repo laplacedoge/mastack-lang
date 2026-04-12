@@ -28,6 +28,8 @@ Lexer_init(
     TokSeq_init(&self->stm);
     LexRpt_init(&self->rpt);
 
+    self->stat = State_Start;
+    self->should_mark_newline = false;
     self->cur_idx = 0;
     self->nl_idx = 0;
     self->row = 0;
