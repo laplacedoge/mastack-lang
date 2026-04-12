@@ -6,5 +6,8 @@ add_library(lexer
 )
 target_link_libraries(lexer
     PRIVATE memory
-    PUBLIC common mut_buf buf_writer
+    PUBLIC  common
+            imm_buf
+            mut_buf
+            buf_writer
 )

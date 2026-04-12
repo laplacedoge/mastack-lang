@@ -8,8 +8,5 @@ target_include_directories(test
 )
 target_link_libraries(test
     PRIVATE greatest
-            common
-            imm_buf
-            mut_buf
             lexer
 )
