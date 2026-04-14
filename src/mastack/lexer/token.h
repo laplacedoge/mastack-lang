@@ -22,6 +22,10 @@ typedef enum _TokTag {
     TokTag_Asterisk,        // Asterisk `*`
     TokTag_ForwardSlash,    // Forward slash `/`
 
+    TokTag_Not,             // Logical Not `!`
+    TokTag_And,             // Logical And `&`
+    TokTag_Or,              // Logical Or `|`
+
     TokTag_Equal,           // Equal `==`
     TokTag_NotEqual,        // Equal `!=`
     TokTag_GreaterThan,     // Equal `>`

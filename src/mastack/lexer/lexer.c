@@ -366,6 +366,10 @@ Lexer_run_fsm_start(
         return Action_Continue;
     }
 
+    case '!': tag = TokTag_Not; break;
+    case '&': tag = TokTag_And; break;
+    case '|': tag = TokTag_Or; break;
+
     case '.': tag = TokTag_Dot; break;
 
     case '=': {

@@ -25,6 +25,10 @@ TokTag_to_str(
     case TokTag_Asterisk:       return "*";
     case TokTag_ForwardSlash:   return "/";
 
+    case TokTag_Not:            return "!";
+    case TokTag_And:            return "&";
+    case TokTag_Or:             return "|";
+
     case TokTag_Equal:          return "==";
     case TokTag_NotEqual:       return "!=";
     case TokTag_GreaterThan:    return ">";
