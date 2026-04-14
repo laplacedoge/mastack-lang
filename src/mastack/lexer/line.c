@@ -1,5 +1,20 @@
 #include "line.h"
 
+usize
+Eol_length(
+    Eol eol
+) {
+    usize len;
+    switch (eol) {
+    case Eol_None:  len = 0; break;
+    case Eol_Cr:    len = 1; break;
+    case Eol_Lf:    len = 1; break;
+    case Eol_CrLf:  len = 2; break;
+    }
+
+    return len;
+}
+
 bool
 LineInfo_write(
     LineInfo * self,

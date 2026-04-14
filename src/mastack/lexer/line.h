@@ -11,6 +11,11 @@ typedef enum _Eol {
     Eol_CrLf,
 } Eol;
 
+usize
+Eol_length(
+    Eol eol
+);
+
 /**
  * @brief Line info.
  */
