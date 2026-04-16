@@ -76,7 +76,7 @@ typedef struct _Token {
 
 void
 Token_init_tagonly(
-    Token * tok,
+    Token * self,
     TokTag tag
 );
 

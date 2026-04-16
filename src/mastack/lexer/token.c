@@ -57,11 +57,11 @@ TokTag_to_str(
 
 void
 Token_init_tagonly(
-    Token * tok,
+    Token * self,
     TokTag tag
 ) {
-    memset(tok, 0, sizeof(Token));
-    tok->tag = tag;
+    memset(self, 0, sizeof(Token));
+    self->tag = tag;
 }
 
 bool
