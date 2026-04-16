@@ -54,6 +54,12 @@ ImmBuf_new_from_file_using_imm_buf(
     ImmBuf * path
 );
 
+bool
+ImmBuf_init_from_cstr(
+    ImmBuf * self,
+    const char * str
+);
+
 ImmBuf *
 ImmBuf_new_from_str(
     const char * str

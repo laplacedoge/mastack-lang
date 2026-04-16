@@ -195,6 +195,14 @@ Exit:
     return self;
 }
 
+bool
+ImmBuf_init_from_cstr(
+    ImmBuf * self,
+    const char * str
+) {
+    return ImmBuf_init_from_slice(self, BufSlice_new_from_str(str));
+}
+
 ImmBuf *
 ImmBuf_new_from_str(
     const char * str
