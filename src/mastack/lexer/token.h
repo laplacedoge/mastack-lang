@@ -81,6 +81,30 @@ Token_init_tagonly(
 );
 
 bool
+Token_init_name_from_cstr(
+    Token * self,
+    const char * name
+);
+
+void
+Token_init_integer(
+    Token * self,
+    usize val
+);
+
+bool
+Token_init_sl_comment_from_cstr(
+    Token * self,
+    const char * comment
+);
+
+bool
+Token_compare(
+    Token * self,
+    Token * other
+);
+
+bool
 Token_write(
     const Token * tok,
     BufWriter * wrt

@@ -65,6 +65,71 @@ Token_init_tagonly(
 }
 
 bool
+Token_init_name_from_cstr(
+    Token * self,
+    const char * name
+) {
+    ImmBuf buf;
+    if (!ImmBuf_init_from_cstr(&buf, name)) {
+        return false;
+    }
+
+    Token_init_tagonly(self, TokTag_Name);
+    self->v.name.buf = buf;
+
+    return true;
+}
+
+void
+Token_init_integer(
+    Token * self,
+    usize val
+) {
+    Token_init_tagonly(self, TokTag_Int);
+    self->v.int_.val = val;
+}
+
+bool
+Token_init_sl_comment_from_cstr(
+    Token * self,
+    const char * comment
+) {
+    ImmBuf buf;
+    if (!ImmBuf_init_from_cstr(&buf, comment)) {
+        return false;
+    }
+
+    Token_init_tagonly(self, TokTag_SlComment);
+    self->v.sl_cmt.buf = buf;
+
+    return true;
+}
+
+bool
+Token_compare(
+    Token * self,
+    Token * other
+) {
+    if (other->tag != self->tag) {
+        return false;
+    }
+
+    switch (other->tag) {
+    case TokTag_Name:
+        return ImmBuf_compare(&other->v.name.buf, &self->v.name.buf);
+
+    case TokTag_Int:
+        return other->v.int_.val == self->v.int_.val;
+
+    case TokTag_SlComment:
+        return ImmBuf_compare(&other->v.sl_cmt.buf, &self->v.sl_cmt.buf);
+
+    default:
+        return true;
+    }
+}
+
+bool
 Token_write(
     const Token * tok,
     BufWriter * wrt
