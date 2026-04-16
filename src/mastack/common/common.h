@@ -78,4 +78,8 @@ BufSlice_copy_escaped(
 #define SHORTEN_NAME(long, short)   \
     typeof(long) * short = &long
 
+#define ARRAY_SIZE(arr) \
+    (sizeof(arr) / sizeof((arr)[0]) + \
+        _Generic(&(arr), typeof((arr)[0]) **: 0, default: 0))
+
 #endif
