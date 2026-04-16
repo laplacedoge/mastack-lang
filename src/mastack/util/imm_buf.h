@@ -61,7 +61,7 @@ ImmBuf_init_from_cstr(
 );
 
 ImmBuf *
-ImmBuf_new_from_str(
+ImmBuf_new_from_cstr(
     const char * str
 );
 

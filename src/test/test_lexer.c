@@ -65,7 +65,7 @@
 #define POST_ASSERT_LINES() \
 
 TEST test_tokenization_all_kinds_of_token(void) {
-    BufSlice text = BufSlice_new_from_str(
+    BufSlice text = BufSlice_new_from_cstr(
         LINE_ET("// This is a single-line comment!")
         LINE_ET("fn calculation_1(x: Integer) -> Integer {")
         LINE_ET("    return 100 / (10 - x) * x")

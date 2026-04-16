@@ -200,14 +200,14 @@ ImmBuf_init_from_cstr(
     ImmBuf * self,
     const char * str
 ) {
-    return ImmBuf_init_from_slice(self, BufSlice_new_from_str(str));
+    return ImmBuf_init_from_slice(self, BufSlice_new_from_cstr(str));
 }
 
 ImmBuf *
-ImmBuf_new_from_str(
+ImmBuf_new_from_cstr(
     const char * str
 ) {
-    return ImmBuf_new_from_slice(BufSlice_new_from_str(str));
+    return ImmBuf_new_from_slice(BufSlice_new_from_cstr(str));
 }
 
 ImmBuf *

@@ -3,7 +3,7 @@
 #include "common.h"
 
 BufSlice
-BufSlice_new_from_str(
+BufSlice_new_from_cstr(
     const char * str
 ) {
     return BufSlice_new(str, strlen(str));

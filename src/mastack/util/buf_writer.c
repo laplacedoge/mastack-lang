@@ -26,7 +26,7 @@ BufWriter_write_str(
     BufWriter * self,
     const char * str
 ) {
-    return BufWriter_write_all(self, BufSlice_new_from_str(str));
+    return BufWriter_write_all(self, BufSlice_new_from_cstr(str));
 }
 
 bool

@@ -60,7 +60,7 @@ BufSlice_new_empty(void) {
     BufSlice_new(ptr, sizeof(*ptr))
 
 BufSlice
-BufSlice_new_from_str(
+BufSlice_new_from_cstr(
     const char * str
 );
 
