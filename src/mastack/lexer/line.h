@@ -20,8 +20,6 @@ Eol_length(
  * @brief Line info.
  */
 typedef struct _LineInfo {
-    // usize off;  // The offset of the first byte of this line
-    // usize len;  // The length of this line
     u64 off:31; // The offset of the first byte of this line
     u64 len:31; // The length of this line
     u64 eol:2;
