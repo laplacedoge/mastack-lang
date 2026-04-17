@@ -82,7 +82,8 @@ TEST test_tokenization_all_kinds_of_token(void) {
     BufSlice text = BufSlice_new_from_cstr(
         LINE_ET("// This is a single-line comment!")
         LINE_ET("fn calculation_1(x: Integer) -> Integer {")
-        LINE_ET("    return 100 / (10 - x) * x")
+        LINE_ET("    let result = 100 / (10 - x)")
+        LINE_ET("    return result * x")
         LINE_ET("}")
         LINE_ET("")
         LINE_ET("fn comparison_1(a: Boolean, b: Boolean, c: Boolean) -> Boolean {")
@@ -92,6 +93,22 @@ TEST test_tokenization_all_kinds_of_token(void) {
         LINE_ET("        return false")
         LINE_ET("    } else {")
         LINE_ET("        return true")
+        LINE_ET("    }")
+        LINE_ET("}")
+        LINE_ET("")
+        LINE_ET("fn comparison_2(a: Integer, b: Integer, c: Integer) -> Boolean {")
+        LINE_ET("    if a != 0 {")
+        LINE_ET("        if b > c {")
+        LINE_ET("            return a >= c")
+        LINE_ET("        } else {")
+        LINE_ET("            return a == c")
+        LINE_ET("        }")
+        LINE_ET("    } else {")
+        LINE_ET("        if b < c {")
+        LINE_ET("            return a <= c")
+        LINE_ET("        } else {")
+        LINE_ET("            return a != c")
+        LINE_ET("        }")
         LINE_ET("    }")
         LINE_NM("}")
     );
@@ -120,8 +137,10 @@ TEST test_tokenization_all_kinds_of_token(void) {
         NAME("Integer"),
         TAGONLY(TokTag_LeftBrace),
     });
-    ASSERT_LINE(lex, 29, Eol_Lf, {
-        TAGONLY(TokTag_Return),
+    ASSERT_LINE(lex, 31, Eol_Lf, {
+        TAGONLY(TokTag_Let),
+        NAME("result"),
+        TAGONLY(TokTag_Assign),
         INTEGER(100),
         TAGONLY(TokTag_ForwardSlash),
         TAGONLY(TokTag_LeftParen),
@@ -129,6 +148,10 @@ TEST test_tokenization_all_kinds_of_token(void) {
         TAGONLY(TokTag_Hyphen),
         NAME("x"),
         TAGONLY(TokTag_RightParen),
+    });
+    ASSERT_LINE(lex, 21, Eol_Lf, {
+        TAGONLY(TokTag_Return),
+        NAME("result"),
         TAGONLY(TokTag_Asterisk),
         NAME("x"),
     });
@@ -189,6 +212,99 @@ TEST test_tokenization_all_kinds_of_token(void) {
     ASSERT_LINE(lex, 19, Eol_Lf, {
         TAGONLY(TokTag_Return),
         TAGONLY(TokTag_True),
+    });
+    ASSERT_LINE(lex, 5, Eol_Lf, {
+        TAGONLY(TokTag_RightBrace),
+    });
+    ASSERT_LINE(lex, 1, Eol_Lf, {
+        TAGONLY(TokTag_RightBrace),
+    });
+    ASSERT_LINE(lex, 0, Eol_Lf, {});
+    ASSERT_LINE(lex, 64, Eol_Lf, {
+        TAGONLY(TokTag_Fn),
+        NAME("comparison_2"),
+        TAGONLY(TokTag_LeftParen),
+        NAME("a"),
+        TAGONLY(TokTag_Colon),
+        NAME("Integer"),
+        TAGONLY(TokTag_Comma),
+        NAME("b"),
+        TAGONLY(TokTag_Colon),
+        NAME("Integer"),
+        TAGONLY(TokTag_Comma),
+        NAME("c"),
+        TAGONLY(TokTag_Colon),
+        NAME("Integer"),
+        TAGONLY(TokTag_RightParen),
+        TAGONLY(TokTag_RightArrow),
+        NAME("Boolean"),
+        TAGONLY(TokTag_LeftBrace),
+    });
+    ASSERT_LINE(lex, 15, Eol_Lf, {
+        TAGONLY(TokTag_If),
+        NAME("a"),
+        TAGONLY(TokTag_NotEqual),
+        INTEGER(0),
+        TAGONLY(TokTag_LeftBrace),
+    });
+    ASSERT_LINE(lex, 18, Eol_Lf, {
+        TAGONLY(TokTag_If),
+        NAME("b"),
+        TAGONLY(TokTag_GreaterThan),
+        NAME("c"),
+        TAGONLY(TokTag_LeftBrace),
+    });
+    ASSERT_LINE(lex, 25, Eol_Lf, {
+        TAGONLY(TokTag_Return),
+        NAME("a"),
+        TAGONLY(TokTag_Gte),
+        NAME("c"),
+    });
+    ASSERT_LINE(lex, 16, Eol_Lf, {
+        TAGONLY(TokTag_RightBrace),
+        TAGONLY(TokTag_Else),
+        TAGONLY(TokTag_LeftBrace),
+    });
+    ASSERT_LINE(lex, 25, Eol_Lf, {
+        TAGONLY(TokTag_Return),
+        NAME("a"),
+        TAGONLY(TokTag_Equal),
+        NAME("c"),
+    });
+    ASSERT_LINE(lex, 9, Eol_Lf, {
+        TAGONLY(TokTag_RightBrace),
+    });
+    ASSERT_LINE(lex, 12, Eol_Lf, {
+        TAGONLY(TokTag_RightBrace),
+        TAGONLY(TokTag_Else),
+        TAGONLY(TokTag_LeftBrace),
+    });
+    ASSERT_LINE(lex, 18, Eol_Lf, {
+        TAGONLY(TokTag_If),
+        NAME("b"),
+        TAGONLY(TokTag_LessThan),
+        NAME("c"),
+        TAGONLY(TokTag_LeftBrace),
+    });
+    ASSERT_LINE(lex, 25, Eol_Lf, {
+        TAGONLY(TokTag_Return),
+        NAME("a"),
+        TAGONLY(TokTag_Lte),
+        NAME("c"),
+    });
+    ASSERT_LINE(lex, 16, Eol_Lf, {
+        TAGONLY(TokTag_RightBrace),
+        TAGONLY(TokTag_Else),
+        TAGONLY(TokTag_LeftBrace),
+    });
+    ASSERT_LINE(lex, 25, Eol_Lf, {
+        TAGONLY(TokTag_Return),
+        NAME("a"),
+        TAGONLY(TokTag_NotEqual),
+        NAME("c"),
+    });
+    ASSERT_LINE(lex, 9, Eol_Lf, {
+        TAGONLY(TokTag_RightBrace),
     });
     ASSERT_LINE(lex, 5, Eol_Lf, {
         TAGONLY(TokTag_RightBrace),
