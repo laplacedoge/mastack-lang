@@ -115,6 +115,27 @@ Token_deinit(
     Token * tok
 );
 
+typedef struct _TokSeqSlice {
+    const Token * toks;
+    usize cnt;
+} TokSeqSlice;
+
+static
+inline
+TokSeqSlice
+TokSeqSlice_new(
+    const Token * toks,
+    usize cnt
+) {
+    return (TokSeqSlice){.toks = toks, .cnt = cnt};
+}
+
+bool
+TokSeqSlice_write(
+    TokSeqSlice self,
+    BufWriter * wrt
+);
+
 typedef struct _TokSeq {
     MutBuf buf;
     usize cnt;
@@ -167,11 +188,41 @@ TokSeq_at(
 
 static
 inline
+const Token *
+TokSeq_data(
+    TokSeq * self
+) {
+    return (const Token *)MutBuf_data(&self->buf);
+}
+
+static
+inline
 usize
 TokSeq_count(
     TokSeq * self
 ) {
     return self->cnt;
+}
+
+static
+inline
+TokSeqSlice
+TokSeq_as_slice(
+    TokSeq * self
+) {
+    return TokSeqSlice_new(TokSeq_data(self), self->cnt);
+}
+
+static
+inline
+TokSeqSlice
+TokSeq_subslice(
+    TokSeq * self,
+    Range range
+) {
+    usize start, end;
+    Range_resolve(range, self->cnt, &start, &end);
+    return TokSeqSlice_new(TokSeq_at(self, start), end - start);
 }
 
 bool

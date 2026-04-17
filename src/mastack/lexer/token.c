@@ -200,6 +200,74 @@ Token_deinit(
     }
 }
 
+static
+bool
+TokSeqSlice_write_as_list(
+    TokSeqSlice self,
+    BufWriter * wrt
+) {
+    bool res = false;
+
+    if (!BufWriter_write_str(wrt, "[")) {
+        goto Exit;
+    }
+
+    if (self.cnt == 1) {
+        const Token * tok = &self.toks[0];
+        if (!Token_write(tok, wrt)) {
+            goto Exit;
+        }
+    } else if (self.cnt > 1) {
+        const Token * tok = &self.toks[0];
+        if (!Token_write(tok, wrt)) {
+            goto Exit;
+        }
+
+        for (usize i = 1; i < self.cnt; i++) {
+            const Token * tok = &self.toks[i];
+            if (!BufWriter_write_str(wrt, ", ") ||
+                !Token_write(tok, wrt)) {
+
+                goto Exit;
+            }
+        }
+    }
+
+    if (!BufWriter_write_str(wrt, "]")) {
+        goto Exit;
+    }
+
+    res = true;
+
+Exit:
+    return res;
+}
+
+bool
+TokSeqSlice_write(
+    TokSeqSlice self,
+    BufWriter * wrt
+) {
+    bool res = false;
+
+    if (!BufWriter_write_fmt(wrt, "<TokSeqSlice(%zu): ", self.cnt)) {
+        goto Exit;
+    }
+
+    if (!TokSeqSlice_write_as_list(self, wrt)) {
+        goto Exit;
+    }
+
+    if (!BufWriter_write_str(wrt, ">")) {
+        goto Exit;
+    }
+
+    res = true;
+
+Exit:
+    return res;
+}
+
 void
 TokSeq_init(
     TokSeq * self
@@ -308,32 +376,15 @@ TokSeq_write(
     bool res = false;
 
     usize cnt = TokSeq_count(self);
-    if (!BufWriter_write_fmt(wrt, "<TokSeq(%zu): [", cnt)) {
+    if (!BufWriter_write_fmt(wrt, "<TokSeq(%zu): ", cnt)) {
         goto Exit;
     }
 
-    if (cnt == 1) {
-        const Token * tok = TokSeq_at(self, 0);
-        if (!Token_write(tok, wrt)) {
-            goto Exit;
-        }
-    } else if (cnt > 1) {
-        const Token * tok = TokSeq_at(self, 0);
-        if (!Token_write(tok, wrt)) {
-            goto Exit;
-        }
-
-        for (usize i = 1; i < cnt; i++) {
-            const Token * tok = TokSeq_at(self, i);
-            if (!BufWriter_write_str(wrt, ", ") ||
-                !Token_write(tok, wrt)) {
-
-                goto Exit;
-            }
-        }
+    if (!TokSeqSlice_write_as_list(TokSeq_as_slice(self), wrt)) {
+        goto Exit;
     }
 
-    if (!BufWriter_write_str(wrt, "]>")) {
+    if (!BufWriter_write_str(wrt, ">")) {
         goto Exit;
     }
 
