@@ -2,6 +2,22 @@
 
 #include "common.h"
 
+void
+Range_resolve(
+    Range self,
+    usize len,
+    usize * start,
+    usize * end
+) {
+    usize s = self.has_start_bound ? self.start : 0;
+    usize e = self.has_end_bound ? self.end : len;
+    if (s > len) s = len;
+    if (e > len) e = len;
+
+    *start = s;
+    *end = e;
+}
+
 BufSlice
 BufSlice_new_from_cstr(
     const char * str

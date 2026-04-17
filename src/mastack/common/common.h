@@ -24,6 +24,88 @@ typedef __int128    s128;
 typedef size_t      usize;
 typedef ssize_t     ssize;
 
+typedef struct _Range {
+    u64 has_start_bound:1;
+    u64 has_end_bound:1;
+    u64 start:31;
+    u64 end:31;
+} Range;
+
+static
+inline
+Range
+Range_new(
+    usize start,
+    usize end
+) {
+    return (Range){
+        .has_start_bound = true,
+        .has_end_bound = true,
+        .start = start,
+        .end = end,
+    };
+}
+
+static
+inline
+Range
+Range_new_empty(void) {
+    return (Range){
+        .has_start_bound = true,
+        .has_end_bound = true,
+        .start = 0,
+        .end = 0,
+    };
+}
+
+static
+inline
+Range
+Range_new_from(
+    usize start
+) {
+    return (Range){
+        .has_start_bound = true,
+        .has_end_bound = false,
+        .start = start,
+        .end = 0,
+    };
+}
+
+static
+inline
+Range
+Range_new_to(
+    usize end
+) {
+    return (Range){
+        .has_start_bound = false,
+        .has_end_bound = true,
+        .start = 0,
+        .end = end,
+    };
+}
+
+static
+inline
+Range
+Range_new_all(void) {
+    return (Range){
+        .has_start_bound = false,
+        .has_end_bound = false,
+        .start = 0,
+        .end = 0,
+    };
+}
+
+void
+Range_resolve(
+    Range self,
+    usize len,
+    usize * start,
+    usize * end
+);
+
 /**
  * @brief Slice of buffer.
  */
