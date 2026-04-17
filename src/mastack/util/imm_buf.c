@@ -103,8 +103,6 @@ ImmBuf_init_escaped_from_slice(
         return false;
     }
 
-    printf("slice len: %zu, escaped len: %zu\r\n", slice.len, escaped_len);
-
     BufSlice_copy_escaped(slice, buf);
     self->buf = buf;
     self->len = escaped_len;

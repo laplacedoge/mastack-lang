@@ -312,43 +312,6 @@ MutBuf_push_fmt(
     return result;
 }
 
-// bool
-// MutBuf_push_fmt_va(
-//     MutBuf * self,
-//     const char * fmt,
-//     va_list args
-// ) {
-//     bool res = false;
-
-//     va_list args_;
-//     va_copy(args_, args);
-
-//     char tiny_buf[128];
-//     char * tmp_buf = tiny_buf;
-
-//     int len = vsnprintf(NULL, 0, fmt, args);
-//     if (len > sizeof(tiny_buf)) {
-//         tmp_buf = (char *)Mem_malloc(len + 1);
-//         if (tmp_buf == NULL) {
-//             goto EndVa;
-//         }
-//     }
-
-//     vsnprintf(tmp_buf, len + 1, fmt, args_);
-
-//     res = MutBuf_push_buf(self, tmp_buf, len);
-
-//     if (tmp_buf != tiny_buf) {
-//         Mem_free(tmp_buf);
-//     }
-
-// EndVa:
-//     va_end(args_);
-
-// Exit:
-//     return res;
-// }
-
 bool
 MutBuf_extend_with_fmt_va(
     MutBuf * self,

@@ -89,13 +89,6 @@ MutBuf_extend_with_fmt(
     ...
 );
 
-// bool
-// MutBuf_push_fmt_va(
-//     MutBuf * self,
-//     const char * fmt,
-//     va_list args
-// );
-
 bool
 MutBuf_extend_with_fmt_va(
     MutBuf * self,
