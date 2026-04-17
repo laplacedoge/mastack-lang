@@ -48,4 +48,14 @@ BufWriter_deinit(
     BufWriter * self
 );
 
+#define DBG(ins, type)                      \
+    do {                                    \
+        BufWriter wrt;                      \
+        BufWriter_init(&wrt, 0);            \
+        type##_write((ins), &wrt);          \
+        BufWriter_write_str(&wrt, "\n");    \
+        BufWriter_flush(&wrt);              \
+        BufWriter_deinit(&wrt);             \
+    } while (false)
+
 #endif
