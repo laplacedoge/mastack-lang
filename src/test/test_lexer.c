@@ -40,13 +40,23 @@
         tok;                                                    \
     })
 
+/**
+ * @brief Put this before all the ASSERT_LINE macros.
+ */
 #define PRE_ASSERT_LINES()  \
     usize byte_off = 0;     \
+    usize row_off = 0;      \
     usize tok_off = 0;      \
 
-#define ASSERT_LINE(lex_, row_, len_, eol_, ...)                    \
+/**
+ * @brief Assert the properties of a line.
+ * @param lex_  The Lexer instance.
+ * @param len_  The expected line length.
+ * @param eol_  The expected EOL.
+ */
+#define ASSERT_LINE(lex_, len_, eol_, ...)                          \
     do {                                                            \
-        LineInfo * info = LineCache_at(&lex_.lc, row_);             \
+        LineInfo * info = LineCache_at(&lex_.lc, row_off);          \
         ASSERT_EQ_FMT((usize)byte_off, (usize)info->off, "%zu");    \
         ASSERT_EQ_FMT((usize)len_, (usize)info->len, "%zu");        \
         ASSERT_EQ_FMT(eol_, (Eol)info->eol, "%d");                  \
@@ -60,9 +70,13 @@
             Token_deinit(&toks[i]);                                 \
         }                                                           \
         tok_off += ARRAY_SIZE(toks);                                \
+        row_off += 1;                                               \
     } while (false);
 
-#define POST_ASSERT_LINES() \
+/**
+ * @brief Put this after all the ASSERT_LINE macros.
+ */
+#define POST_ASSERT_LINES()
 
 TEST test_tokenization_all_kinds_of_token(void) {
     BufSlice text = BufSlice_new_from_cstr(
@@ -91,10 +105,10 @@ TEST test_tokenization_all_kinds_of_token(void) {
 
     PRE_ASSERT_LINES();
 
-    ASSERT_LINE(lex, 0, 33, Eol_Lf, {
+    ASSERT_LINE(lex, 33, Eol_Lf, {
         SL_COMMENT(" This is a single-line comment!"),
     });
-    ASSERT_LINE(lex, 1, 41, Eol_Lf, {
+    ASSERT_LINE(lex, 41, Eol_Lf, {
         TAGONLY(TokTag_Fn),
         NAME("calculation_1"),
         TAGONLY(TokTag_LeftParen),
@@ -106,7 +120,7 @@ TEST test_tokenization_all_kinds_of_token(void) {
         NAME("Integer"),
         TAGONLY(TokTag_LeftBrace),
     });
-    ASSERT_LINE(lex, 2, 29, Eol_Lf, {
+    ASSERT_LINE(lex, 29, Eol_Lf, {
         TAGONLY(TokTag_Return),
         INTEGER(100),
         TAGONLY(TokTag_ForwardSlash),
@@ -118,11 +132,11 @@ TEST test_tokenization_all_kinds_of_token(void) {
         TAGONLY(TokTag_Asterisk),
         NAME("x"),
     });
-    ASSERT_LINE(lex, 3, 1, Eol_Lf, {
+    ASSERT_LINE(lex, 1, Eol_Lf, {
         TAGONLY(TokTag_RightBrace),
     });
-    ASSERT_LINE(lex, 4, 0, Eol_Lf, {});
-    ASSERT_LINE(lex, 5, 64, Eol_Lf, {
+    ASSERT_LINE(lex, 0, Eol_Lf, {});
+    ASSERT_LINE(lex, 64, Eol_Lf, {
         TAGONLY(TokTag_Fn),
         NAME("comparison_1"),
         TAGONLY(TokTag_LeftParen),
@@ -142,18 +156,18 @@ TEST test_tokenization_all_kinds_of_token(void) {
         NAME("Boolean"),
         TAGONLY(TokTag_LeftBrace),
     });
-    ASSERT_LINE(lex, 6, 15, Eol_Lf, {
+    ASSERT_LINE(lex, 15, Eol_Lf, {
         TAGONLY(TokTag_If),
         NAME("a"),
         TAGONLY(TokTag_Or),
         NAME("b"),
         TAGONLY(TokTag_LeftBrace),
     });
-    ASSERT_LINE(lex, 7, 19, Eol_Lf, {
+    ASSERT_LINE(lex, 19, Eol_Lf, {
         TAGONLY(TokTag_Return),
         TAGONLY(TokTag_True),
     });
-    ASSERT_LINE(lex, 8, 22, Eol_Lf, {
+    ASSERT_LINE(lex, 22, Eol_Lf, {
         TAGONLY(TokTag_RightBrace),
         TAGONLY(TokTag_Else),
         TAGONLY(TokTag_If),
@@ -163,23 +177,23 @@ TEST test_tokenization_all_kinds_of_token(void) {
         NAME("c"),
         TAGONLY(TokTag_LeftBrace),
     });
-    ASSERT_LINE(lex, 9, 20, Eol_Lf, {
+    ASSERT_LINE(lex, 20, Eol_Lf, {
         TAGONLY(TokTag_Return),
         TAGONLY(TokTag_False),
     });
-    ASSERT_LINE(lex, 10, 12, Eol_Lf, {
+    ASSERT_LINE(lex, 12, Eol_Lf, {
         TAGONLY(TokTag_RightBrace),
         TAGONLY(TokTag_Else),
         TAGONLY(TokTag_LeftBrace),
     });
-    ASSERT_LINE(lex, 11, 19, Eol_Lf, {
+    ASSERT_LINE(lex, 19, Eol_Lf, {
         TAGONLY(TokTag_Return),
         TAGONLY(TokTag_True),
     });
-    ASSERT_LINE(lex, 12, 5, Eol_Lf, {
+    ASSERT_LINE(lex, 5, Eol_Lf, {
         TAGONLY(TokTag_RightBrace),
     });
-    ASSERT_LINE(lex, 13, 1, Eol_None, {
+    ASSERT_LINE(lex, 1, Eol_None, {
         TAGONLY(TokTag_RightBrace),
     });
 
