@@ -11,6 +11,8 @@ typedef enum _State: u8 {
     State_AssignOrEqual,
     State_ForwardSlashOrSingleLineComment,
     State_SingleLineComment,
+    State_GtOrGte,
+    State_LtOrLte,
 } State;
 
 typedef enum _Action {
@@ -370,6 +372,14 @@ Lexer_run_fsm_start(
     case '&': tag = TokTag_And; break;
     case '|': tag = TokTag_Or; break;
 
+    case '>':
+        Lexer_set_state(self, State_GtOrGte);
+        return Action_Continue;
+
+    case '<':
+        Lexer_set_state(self, State_LtOrLte);
+        return Action_Continue;
+
     case '.': tag = TokTag_Dot; break;
 
     case '=': {
@@ -569,6 +579,58 @@ Lexer_run_fsm_single_line_comment(
 
 static
 Action
+Lexer_run_fsm_gt_or_gte(
+    Lexer * self,
+    u8 byte
+) {
+    Action act;
+    if (byte == '=') {
+        if (!Lexer_add_tagonly_token(self, TokTag_Gte)) {
+            return Action_Panic;
+        }
+
+        act = Action_Continue;
+    } else {
+        if (!Lexer_add_tagonly_token(self, TokTag_GreaterThan)) {
+            return Action_Panic;
+        }
+
+        act = Action_Again;
+    }
+
+    Lexer_set_state(self, State_Start);
+
+    return act;
+}
+
+static
+Action
+Lexer_run_fsm_lt_or_lte(
+    Lexer * self,
+    u8 byte
+) {
+    Action act;
+    if (byte == '=') {
+        if (!Lexer_add_tagonly_token(self, TokTag_Lte)) {
+            return Action_Panic;
+        }
+
+        act = Action_Continue;
+    } else {
+        if (!Lexer_add_tagonly_token(self, TokTag_LessThan)) {
+            return Action_Panic;
+        }
+
+        act = Action_Again;
+    }
+
+    Lexer_set_state(self, State_Start);
+
+    return act;
+}
+
+static
+Action
 Lexer_run_fsm(
     Lexer * self,
     u8 byte
@@ -585,6 +647,8 @@ Lexer_run_fsm(
         act = Lexer_run_fsm_forward_slash_or_single_line_comment(self, byte);
         break;
     case State_SingleLineComment:   act = Lexer_run_fsm_single_line_comment(self, byte); break;
+    case State_GtOrGte:             act = Lexer_run_fsm_gt_or_gte(self, byte); break;
+    case State_LtOrLte:             act = Lexer_run_fsm_lt_or_lte(self, byte); break;
     }
 
     return act;
@@ -666,6 +730,20 @@ Lexer_feed_eol(
 
     case State_SingleLineComment:
         if (!Lexer_add_single_line_comment_token(self)) {
+            goto Exit;
+        }
+
+        break;
+
+    case State_GtOrGte:
+        if (!Lexer_add_tagonly_token(self, TokTag_GreaterThan)) {
+            goto Exit;
+        }
+
+        break;
+
+    case State_LtOrLte:
+        if (!Lexer_add_tagonly_token(self, TokTag_LessThan)) {
             goto Exit;
         }
 
