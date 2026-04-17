@@ -13,6 +13,7 @@ typedef enum _State: u8 {
     State_SingleLineComment,
     State_GtOrGte,
     State_LtOrLte,
+    State_ExaminationMarkOrNotEqual,
 } State;
 
 typedef enum _Action {
@@ -368,7 +369,10 @@ Lexer_run_fsm_start(
         return Action_Continue;
     }
 
-    case '!': tag = TokTag_Not; break;
+    case '!':
+        Lexer_set_state(self, State_ExaminationMarkOrNotEqual);
+        return Action_Continue;
+
     case '&': tag = TokTag_And; break;
     case '|': tag = TokTag_Or; break;
 
@@ -631,6 +635,32 @@ Lexer_run_fsm_lt_or_lte(
 
 static
 Action
+Lexer_run_fsm_examination_mark_or_not_equal(
+    Lexer * self,
+    u8 byte
+) {
+    Action act;
+    if (byte == '=') {
+        if (!Lexer_add_tagonly_token(self, TokTag_NotEqual)) {
+            return Action_Panic;
+        }
+
+        act = Action_Continue;
+    } else {
+        if (!Lexer_add_tagonly_token(self, TokTag_Not)) {
+            return Action_Panic;
+        }
+
+        act = Action_Again;
+    }
+
+    Lexer_set_state(self, State_Start);
+
+    return act;
+}
+
+static
+Action
 Lexer_run_fsm(
     Lexer * self,
     u8 byte
@@ -649,6 +679,9 @@ Lexer_run_fsm(
     case State_SingleLineComment:   act = Lexer_run_fsm_single_line_comment(self, byte); break;
     case State_GtOrGte:             act = Lexer_run_fsm_gt_or_gte(self, byte); break;
     case State_LtOrLte:             act = Lexer_run_fsm_lt_or_lte(self, byte); break;
+    case State_ExaminationMarkOrNotEqual:
+        act = Lexer_run_fsm_examination_mark_or_not_equal(self, byte);
+        break;
     }
 
     return act;
@@ -744,6 +777,13 @@ Lexer_feed_eol(
 
     case State_LtOrLte:
         if (!Lexer_add_tagonly_token(self, TokTag_LessThan)) {
+            goto Exit;
+        }
+
+        break;
+
+    case State_ExaminationMarkOrNotEqual:
+        if (!Lexer_add_tagonly_token(self, TokTag_Not)) {
             goto Exit;
         }
 
