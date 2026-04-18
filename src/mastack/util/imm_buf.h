@@ -99,7 +99,7 @@ ImmBuf_compare(
 );
 
 bool
-ImmBuf_compare_with_str(
+ImmBuf_compare_with_cstr(
     ImmBuf * self,
     const char * str
 );

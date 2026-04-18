@@ -85,7 +85,7 @@ LineCache_write(
 
         for (usize i = 1; i < cnt; i++) {
             LineInfo * info = LineCache_at(self, i);
-            if (!BufWriter_write_str(wrt, ", ") ||
+            if (!BufWriter_write_cstr(wrt, ", ") ||
                 !LineInfo_write(info, wrt)) {
 
                 goto Exit;
@@ -93,7 +93,7 @@ LineCache_write(
         }
     }
 
-    if (!BufWriter_write_str(wrt, "]>")) {
+    if (!BufWriter_write_cstr(wrt, "]>")) {
         goto Exit;
     }
 

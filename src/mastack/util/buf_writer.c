@@ -22,7 +22,7 @@ BufWriter_write_all(
 }
 
 bool
-BufWriter_write_str(
+BufWriter_write_cstr(
     BufWriter * self,
     const char * str
 ) {

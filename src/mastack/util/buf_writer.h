@@ -26,7 +26,7 @@ BufWriter_write_all(
 );
 
 bool
-BufWriter_write_str(
+BufWriter_write_cstr(
     BufWriter * self,
     const char * str
 );
@@ -53,7 +53,7 @@ BufWriter_deinit(
         BufWriter wrt;                      \
         BufWriter_init(&wrt, 0);            \
         type##_write((ins), &wrt);          \
-        BufWriter_write_str(&wrt, "\n");    \
+        BufWriter_write_cstr(&wrt, "\n");   \
         BufWriter_flush(&wrt);              \
         BufWriter_deinit(&wrt);             \
     } while (false)

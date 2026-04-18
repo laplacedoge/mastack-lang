@@ -77,7 +77,7 @@ MutBuf_push_buf(
 );
 
 bool
-MutBuf_extend_with_str(
+MutBuf_extend_with_cstr(
     MutBuf * self,
     const char * str
 );

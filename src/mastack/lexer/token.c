@@ -4,7 +4,7 @@
 #include "token.h"
 
 const char *
-TokTag_to_str(
+TokTag_to_cstr(
     TokTag tag
 ) {
     switch (tag) {
@@ -134,7 +134,7 @@ Token_write(
     const Token * tok,
     BufWriter * wrt
 ) {
-    const char * str = TokTag_to_str(tok->tag);
+    const char * str = TokTag_to_cstr(tok->tag);
 
     if (tok->tag == TokTag_Name) {
         BufSlice name = ImmBuf_as_slice(&tok->v.name.buf);
@@ -208,7 +208,7 @@ TokSeqSlice_write_as_list(
 ) {
     bool res = false;
 
-    if (!BufWriter_write_str(wrt, "[")) {
+    if (!BufWriter_write_cstr(wrt, "[")) {
         goto Exit;
     }
 
@@ -225,7 +225,7 @@ TokSeqSlice_write_as_list(
 
         for (usize i = 1; i < self.cnt; i++) {
             const Token * tok = &self.toks[i];
-            if (!BufWriter_write_str(wrt, ", ") ||
+            if (!BufWriter_write_cstr(wrt, ", ") ||
                 !Token_write(tok, wrt)) {
 
                 goto Exit;
@@ -233,7 +233,7 @@ TokSeqSlice_write_as_list(
         }
     }
 
-    if (!BufWriter_write_str(wrt, "]")) {
+    if (!BufWriter_write_cstr(wrt, "]")) {
         goto Exit;
     }
 
@@ -258,7 +258,7 @@ TokSeqSlice_write(
         goto Exit;
     }
 
-    if (!BufWriter_write_str(wrt, ">")) {
+    if (!BufWriter_write_cstr(wrt, ">")) {
         goto Exit;
     }
 
@@ -384,7 +384,7 @@ TokSeq_write(
         goto Exit;
     }
 
-    if (!BufWriter_write_str(wrt, ">")) {
+    if (!BufWriter_write_cstr(wrt, ">")) {
         goto Exit;
     }
 

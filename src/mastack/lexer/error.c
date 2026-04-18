@@ -118,7 +118,7 @@ LexRpt_write(
 
         for (usize i = 1; i < cnt; i++) {
             LexErr * err = LexRpt_at(self, i);
-            if (!BufWriter_write_str(wrt, ", ") ||
+            if (!BufWriter_write_cstr(wrt, ", ") ||
                 !LexErr_write(err, wrt)) {
 
                 goto Exit;
@@ -126,7 +126,7 @@ LexRpt_write(
         }
     }
 
-    if (!BufWriter_write_str(wrt, "]>")) {
+    if (!BufWriter_write_cstr(wrt, "]>")) {
         goto Exit;
     }
 
