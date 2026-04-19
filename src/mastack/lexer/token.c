@@ -25,15 +25,15 @@ TokTag_to_cstr(
     case TokTag_Asterisk:       return "*";
     case TokTag_ForwardSlash:   return "/";
 
-    case TokTag_Not:            return "!";
-    case TokTag_And:            return "&";
-    case TokTag_Or:             return "|";
+    case TokTag_ExaminationMark:return "!";
+    case TokTag_Ampersand:      return "&";
+    case TokTag_Pipe:           return "|";
 
     case TokTag_Equal:          return "==";
     case TokTag_NotEqual:       return "!=";
-    case TokTag_GreaterThan:    return ">";
+    case TokTag_Gt:             return ">";
     case TokTag_Gte:            return ">=";
-    case TokTag_LessThan:       return "<";
+    case TokTag_Lt:             return "<";
     case TokTag_Lte:            return "<=";
 
     case TokTag_Dot:            return ".";

@@ -182,7 +182,7 @@ TEST test_tokenization_all_kinds_of_token(void) {
     ASSERT_LINE(lex, 15, Eol_Lf, {
         TAGONLY(TokTag_If),
         NAME("a"),
-        TAGONLY(TokTag_Or),
+        TAGONLY(TokTag_Pipe),
         NAME("b"),
         TAGONLY(TokTag_LeftBrace),
     });
@@ -194,9 +194,9 @@ TEST test_tokenization_all_kinds_of_token(void) {
         TAGONLY(TokTag_RightBrace),
         TAGONLY(TokTag_Else),
         TAGONLY(TokTag_If),
-        TAGONLY(TokTag_Not),
+        TAGONLY(TokTag_ExaminationMark),
         NAME("b"),
-        TAGONLY(TokTag_And),
+        TAGONLY(TokTag_Ampersand),
         NAME("c"),
         TAGONLY(TokTag_LeftBrace),
     });
@@ -250,7 +250,7 @@ TEST test_tokenization_all_kinds_of_token(void) {
     ASSERT_LINE(lex, 18, Eol_Lf, {
         TAGONLY(TokTag_If),
         NAME("b"),
-        TAGONLY(TokTag_GreaterThan),
+        TAGONLY(TokTag_Gt),
         NAME("c"),
         TAGONLY(TokTag_LeftBrace),
     });
@@ -282,7 +282,7 @@ TEST test_tokenization_all_kinds_of_token(void) {
     ASSERT_LINE(lex, 18, Eol_Lf, {
         TAGONLY(TokTag_If),
         NAME("b"),
-        TAGONLY(TokTag_LessThan),
+        TAGONLY(TokTag_Lt),
         NAME("c"),
         TAGONLY(TokTag_LeftBrace),
     });

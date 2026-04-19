@@ -7,7 +7,7 @@ typedef enum _State: u8 {
     State_Cr,
     State_Name,
     State_Integer,
-    State_MinusOrRightArrow,
+    State_HyphenOrRightArrow,
     State_AssignOrEqual,
     State_ForwardSlashOrSingleLineComment,
     State_SingleLineComment,
@@ -360,7 +360,7 @@ Lexer_run_fsm_start(
     switch (byte) {
     case '+': tag = TokTag_Plus; break;
     case '-': {
-        Lexer_set_state(self, State_MinusOrRightArrow);
+        Lexer_set_state(self, State_HyphenOrRightArrow);
         return Action_Continue;
     }
     case '*': tag = TokTag_Asterisk; break;
@@ -373,8 +373,8 @@ Lexer_run_fsm_start(
         Lexer_set_state(self, State_ExaminationMarkOrNotEqual);
         return Action_Continue;
 
-    case '&': tag = TokTag_And; break;
-    case '|': tag = TokTag_Or; break;
+    case '&': tag = TokTag_Ampersand; break;
+    case '|': tag = TokTag_Pipe; break;
 
     case '>':
         Lexer_set_state(self, State_GtOrGte);
@@ -487,7 +487,7 @@ Lexer_run_fsm_integer(
 
 static
 Action
-Lexer_run_fsm_minus_or_right_arrow(
+Lexer_run_fsm_hyphen_or_right_arrow(
     Lexer * self,
     u8 byte
 ) {
@@ -595,7 +595,7 @@ Lexer_run_fsm_gt_or_gte(
 
         act = Action_Continue;
     } else {
-        if (!Lexer_add_tagonly_token(self, TokTag_GreaterThan)) {
+        if (!Lexer_add_tagonly_token(self, TokTag_Gt)) {
             return Action_Panic;
         }
 
@@ -621,7 +621,7 @@ Lexer_run_fsm_lt_or_lte(
 
         act = Action_Continue;
     } else {
-        if (!Lexer_add_tagonly_token(self, TokTag_LessThan)) {
+        if (!Lexer_add_tagonly_token(self, TokTag_Lt)) {
             return Action_Panic;
         }
 
@@ -647,7 +647,7 @@ Lexer_run_fsm_examination_mark_or_not_equal(
 
         act = Action_Continue;
     } else {
-        if (!Lexer_add_tagonly_token(self, TokTag_Not)) {
+        if (!Lexer_add_tagonly_token(self, TokTag_ExaminationMark)) {
             return Action_Panic;
         }
 
@@ -671,7 +671,7 @@ Lexer_run_fsm(
     case State_Cr:                  act = Lexer_run_fsm_cr(self, byte); break;
     case State_Name:                act = Lexer_run_fsm_name(self, byte); break;
     case State_Integer:             act = Lexer_run_fsm_integer(self, byte); break;
-    case State_MinusOrRightArrow:   act = Lexer_run_fsm_minus_or_right_arrow(self, byte); break;
+    case State_HyphenOrRightArrow:  act = Lexer_run_fsm_hyphen_or_right_arrow(self, byte); break;
     case State_AssignOrEqual:       act = Lexer_run_fsm_assign_or_equal(self, byte); break;
     case State_ForwardSlashOrSingleLineComment:
         act = Lexer_run_fsm_forward_slash_or_single_line_comment(self, byte);
@@ -740,7 +740,7 @@ Lexer_feed_eol(
 
         break;
 
-    case State_MinusOrRightArrow:
+    case State_HyphenOrRightArrow:
         if (!Lexer_add_tagonly_token(self, TokTag_Hyphen)) {
             goto Exit;
         }
@@ -769,21 +769,21 @@ Lexer_feed_eol(
         break;
 
     case State_GtOrGte:
-        if (!Lexer_add_tagonly_token(self, TokTag_GreaterThan)) {
+        if (!Lexer_add_tagonly_token(self, TokTag_Gt)) {
             goto Exit;
         }
 
         break;
 
     case State_LtOrLte:
-        if (!Lexer_add_tagonly_token(self, TokTag_LessThan)) {
+        if (!Lexer_add_tagonly_token(self, TokTag_Lt)) {
             goto Exit;
         }
 
         break;
 
     case State_ExaminationMarkOrNotEqual:
-        if (!Lexer_add_tagonly_token(self, TokTag_Not)) {
+        if (!Lexer_add_tagonly_token(self, TokTag_ExaminationMark)) {
             goto Exit;
         }
 
