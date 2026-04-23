@@ -52,6 +52,8 @@ TokTag_to_cstr(
     case TokTag_RightBrace:     return "}";
 
     case TokTag_SlComment:      return "sl_comment";
+
+    case TokTag_Eos:            return "EOS";
     }
 }
 
@@ -167,6 +169,10 @@ Token_write(
         ImmBuf_deinit(&esc_text);
 
         return res;
+    }
+
+    if (tok->tag == TokTag_Eos) {
+        return BufWriter_write_fmt(wrt, "<%s>", str);
     }
 
     switch (tok->tag) {

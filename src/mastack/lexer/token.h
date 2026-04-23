@@ -49,6 +49,8 @@ typedef enum _TokTag {
     TokTag_RightBrace,      // Right bracket `}`
 
     TokTag_SlComment,       // Single-line comment
+
+    TokTag_Eos,             // End of stream
 } TokTag;
 
 typedef struct _Token {
