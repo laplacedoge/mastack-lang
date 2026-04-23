@@ -712,7 +712,7 @@ Lexer_feed_byte(
 
 static
 bool
-Lexer_feed_eol(
+Lexer_feed_eos(
     Lexer * self
 ) {
     bool res = false;
@@ -811,7 +811,7 @@ Lexer_tokenize(
         }
     }
 
-    if (!Lexer_feed_eol(self)) {
+    if (!Lexer_feed_eos(self)) {
         return false;
     }
 
