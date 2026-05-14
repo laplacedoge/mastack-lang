@@ -9,6 +9,7 @@ BufWriter_init(
     BufWriter * self,
     int fd
 ) {
+    self->colored = false;
     MutBuf_init(&self->buf);
     self->fd = fd;
 }

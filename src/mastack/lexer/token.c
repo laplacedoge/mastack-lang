@@ -3,6 +3,28 @@
 #include "memory/memory.h"
 #include "token.h"
 
+#define COLOR_NAME          COLOR_RED
+#define COLOR_KEYWORD       COLOR_BLUE
+#define COLOR_STRING        COLOR_GREEN
+#define COLOR_PUNCTUATOR    COLOR_CYAN
+
+bool
+TokTag_is_keyword(
+    TokTag self
+) {
+    switch (self) {
+    case TokTag_Else:
+    case TokTag_Fn:
+    case TokTag_If:
+    case TokTag_Let:
+    case TokTag_Return:
+        return true;
+
+    default:
+        return false;
+    }
+}
+
 const char *
 TokTag_to_cstr(
     TokTag tag
@@ -136,56 +158,62 @@ Token_write(
     const Token * tok,
     BufWriter * wrt
 ) {
+    bool res = false;
     const char * str = TokTag_to_cstr(tok->tag);
+
+    GOON_OR_EXIT(BufWriter_write_cstr(wrt, "<"));
 
     if (tok->tag == TokTag_Name) {
         BufSlice name = ImmBuf_as_slice(&tok->v.name.buf);
-        return BufWriter_write_fmt(wrt, "<%s: %.*s>", str, name.len, name.buf);
-    }
-
-    if (tok->tag == TokTag_Int) {
+        GOON_OR_EXIT(BufWriter_write_fmt(wrt, "%s: %s%.*s%s",
+            str,
+            MAYBE_COLORED(wrt, COLOR_NAME),
+            name.len, name.buf,
+            MAYBE_COLORED(wrt, COLOR_RESET)
+        ));
+    } else if (tok->tag == TokTag_Int) {
         BufSlice text = ImmBuf_as_slice(&tok->v.name.buf);
         usize val = tok->v.int_.val;
-        return BufWriter_write_fmt(wrt, "<%s: %zu>", str, val);
-    }
-
-    if (tok->tag == TokTag_False ||
-        tok->tag == TokTag_True) {
-
-        return BufWriter_write_fmt(wrt, "<boolean_literal: %s>", str);
-    }
-
-    if (tok->tag == TokTag_SlComment) {
+        GOON_OR_EXIT(BufWriter_write_fmt(wrt, "%s: %zu", str, val));
+    } else if (tok->tag == TokTag_False ||
+               tok->tag == TokTag_True) {
+        GOON_OR_EXIT(BufWriter_write_fmt(wrt, "boolean_literal: %s", str));
+    } else if (tok->tag == TokTag_SlComment) {
         BufSlice src_slice = ImmBuf_as_slice(&tok->v.name.buf);
 
         ImmBuf esc_text;
-        if (!ImmBuf_init_escaped_from_slice(&esc_text, src_slice)) {
-            return false;
-        }
+        GOON_OR_EXIT(ImmBuf_init_escaped_from_slice(&esc_text, src_slice));
 
         BufSlice esc_slice = ImmBuf_as_slice(&esc_text);
-        bool res = BufWriter_write_fmt(
-            wrt, "<%s: \"%.*s\">", str, esc_slice.len, esc_slice.buf);
+        bool res = BufWriter_write_fmt(wrt, "%s: %s\"%.*s\"%s",
+            str,
+            MAYBE_COLORED(wrt, COLOR_STRING),
+            esc_slice.len, esc_slice.buf,
+            MAYBE_COLORED(wrt, COLOR_RESET));
         ImmBuf_deinit(&esc_text);
-
-        return res;
+        GOON_OR_EXIT(res);
+    } else if (tok->tag == TokTag_Eos) {
+        GOON_OR_EXIT(BufWriter_write_fmt(wrt, "%s", str));
+    } else if (TokTag_is_keyword(tok->tag)) {
+        GOON_OR_EXIT(BufWriter_write_fmt(wrt, "keyword: %s%s%s",
+            MAYBE_COLORED(wrt, COLOR_KEYWORD),
+            str,
+            MAYBE_COLORED(wrt, COLOR_RESET)
+        ));
+    } else {
+        GOON_OR_EXIT(BufWriter_write_fmt(wrt, "punctuator: %s'%s'%s",
+            MAYBE_COLORED(wrt, COLOR_PUNCTUATOR),
+            str,
+            MAYBE_COLORED(wrt, COLOR_RESET)
+        ));
     }
 
-    if (tok->tag == TokTag_Eos) {
-        return BufWriter_write_fmt(wrt, "<%s>", str);
-    }
+    GOON_OR_EXIT(BufWriter_write_fmt(wrt, ">"));
 
-    switch (tok->tag) {
-    case TokTag_Fn:
-    case TokTag_Let:
-    case TokTag_Return:
-        return BufWriter_write_fmt(wrt, "<keyword: %s>", str);
+    res = true;
 
-    default:
-        break;
-    }
-
-    return BufWriter_write_fmt(wrt, "<punctuator: '%s'>", str);
+exit:
+    return res;
 }
 
 void

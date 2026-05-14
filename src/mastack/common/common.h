@@ -24,6 +24,12 @@ typedef __int128    s128;
 typedef size_t      usize;
 typedef ssize_t     ssize;
 
+#define GOON_OR_GOTO(expr, label)   \
+    do { if (!(expr)) goto label; } while (false)
+
+#define GOON_OR_EXIT(expr)  \
+    GOON_OR_GOTO(expr, exit)
+
 typedef struct _Range {
     u64 has_start_bound:1;
     u64 has_end_bound:1;

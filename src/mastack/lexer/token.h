@@ -53,6 +53,11 @@ typedef enum _TokTag {
     TokTag_Eos,             // End of stream
 } TokTag;
 
+bool
+TokTag_is_keyword(
+    TokTag self
+);
+
 typedef struct _Token {
 
     TokTag tag;
